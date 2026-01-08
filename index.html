@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Davi â€” Portfolio</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="splash">
+    <div class="splash-content">
+        <span class="splash-line"></span>
+        <h2 data-i18n="splash">
+            Portifólio de<br><strong>Davi Manieri</strong>
+        </h2>
+    </div>
+  </div>
+
+  <div class="app hidden">
+    <header class="nav">
+    <span class="logo">D</span>
+
+    <div class="nav-right">
+        <span class="status">ONLINE</span>
+
+        <select id="language-switcher">
+        <option value="pt">PT</option>
+        <option value="en">EN</option>
+        </select>
+    </div>
+    </header>
+
+
+  <main class="hero">
+    <div class="content">
+      <span class="vertical-line"></span>
+
+        <h1>
+        <span data-i18n="name">DAVI MANIERI</span><br>
+        <span data-i18n="role">ENGENHEIRO DE COMPUTAÃ‡ÃƒO</span>
+        </h1>
+
+                <p data-i18n="subtitle">
+        Nascido em São Carlos, São Paulo, com a missão de melhorar a cada dia<br>
+        e mudar a vida de quem encontra.
+        </p>
+
+      <div class="menu" aria-label="Navegacao principal">
+        <button class="menu-btn">Home</button>
+        <button class="menu-btn">Curriculo</button>
+        <button class="menu-btn">Projetos</button>
+        <button class="menu-btn">Certificados</button>
+        <button class="menu-btn">Experiencia</button>
+        <button class="menu-btn">Fale comigo</button>
+      </div>
+    </div>
+        <div class="hero-frame" aria-hidden="true">
+      <canvas class="hero-canvas"></canvas>
+      <div class="hero-panel" role="region" aria-live="polite">
+        <div class="panel-content" data-panel>
+Olá! Meu nome é Davi Manieri, sou Técnico de Desenvolvimento de Sistemas e tenho formação concluída em Python, além de habilidades com outras linguagens de programação, lógica e exatas, juntamente com a dedicação e o empenho em cada atividade que me é requisitada!
+Estou à disposição para realizar trabalhos que estejam inseridos dentro do meu contexto de formação acadêmica!
+</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span> DAVI MANIERI Â© 2026</span>
+    <span>Brasil</span>
+  </footer>
+  </div>
+
+  <!-- anime.js -->
+  <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
