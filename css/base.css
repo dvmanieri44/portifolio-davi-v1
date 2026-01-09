@@ -1,0 +1,26 @@
+﻿:root {
+  --bg: #0b0c0d;
+  --text: #e5e5e5;
+  --muted: #8a8a8a;
+  --line: rgba(255,255,255,0.08);
+  --page-pad: 120px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}

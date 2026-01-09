@@ -1,0 +1,99 @@
+﻿button {
+  margin-top: 48px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 12px 32px;
+  font-size: 12px;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.menu {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu-btn {  
+  display: inline-flex; align-items: center;  justify-content: center; text-decoration: none;
+  width: 220px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+/* SPLASH SCREEN */
+.splash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.splash-content {
+  text-align: center;
+  color: var(--text);
+  opacity: 0;
+}
+
+.splash-line {
+  display: block;
+  width: 1px;
+  height: 0;
+  margin: 0 auto 24px;
+  background: var(--line);
+}
+
+.splash h2 {
+  font-weight: 200;
+  font-size: 28px;
+  letter-spacing: 4px;
+  line-height: 1.4;
+}
+
+.splash h2 strong {
+  font-weight: 300;
+  letter-spacing: 6px;
+}
+
+#language-switcher {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+#language-switcher option {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.panel-content a {
+  color: #ffffff;
+  text-decoration: underline;
+}
