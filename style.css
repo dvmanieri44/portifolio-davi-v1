@@ -110,7 +110,8 @@ button:hover {
   gap: 1px;
 }
 
-.menu-btn {
+.menu-btn {  
+  display: inline-flex; align-items: center;  justify-content: center; text-decoration: none;
   width: 220px;
   height: 44px;
   margin: 0;
@@ -157,10 +158,11 @@ button:hover {
   align-items: flex-end;
   justify-content: flex-end;
   padding: 48px;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .panel-content {
+  white-space: pre-line;
   color: #ffffff;
   font-size: 16px;
   letter-spacing: 1px;
@@ -171,6 +173,7 @@ button:hover {
   opacity: 0.9;
   transition: opacity 0.4s ease, transform 0.4s ease;
   max-width: 75%;
+  pointer-events: auto;
 }
 
 .panel-content.is-animating {
@@ -277,4 +280,48 @@ button:hover {
     position: static;
     transform: none;
   }
+}
+.panel-content a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.project-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.project-item {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+
+.project-title {
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.project-meta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.project-desc {
+  margin-top: 8px;
+  color: #ffffff;
+  opacity: 0.9;
+}
+
+.project-link {
+  margin-top: 8px;
+  display: inline-block;
+  color: #ffffff;
+  text-decoration: underline;
 }
