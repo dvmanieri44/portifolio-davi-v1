@@ -79,6 +79,8 @@ function initHeroDots() {
     precision mediump float;
     uniform vec2 u_res;
     uniform float u_time;
+    uniform vec3 u_color;
+    uniform float u_alphaScale;
     varying vec2 v_uv;
 
     float hash(vec2 p) {
@@ -124,8 +126,8 @@ function initHeroDots() {
       float dots = clamp(d1 * 0.55 + d2 * 0.5 + d3 * 0.35, 0.0, 1.0);
       float fog = smoothstep(0.25, 1.0, noise(p * 2.6 + u_time * 0.03)) * 0.04;
 
-      float alpha = clamp(dots * 0.45 + fog, 0.0, 0.5);
-      vec3 color = vec3(1.0) * (0.55 + 0.25 * dots);
+      float alpha = clamp((dots * 0.45 + fog) * u_alphaScale, 0.0, 0.65);
+      vec3 color = u_color * (0.55 + 0.25 * dots);
 
       gl_FragColor = vec4(color, alpha);
     }
@@ -148,6 +150,8 @@ function initHeroDots() {
   const posLoc = gl.getAttribLocation(program, 'a_pos');
   const resLoc = gl.getUniformLocation(program, 'u_res');
   const timeLoc = gl.getUniformLocation(program, 'u_time');
+  const colorLoc = gl.getUniformLocation(program, 'u_color');
+  const alphaLoc = gl.getUniformLocation(program, 'u_alphaScale');
 
   const buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -179,6 +183,21 @@ function initHeroDots() {
   }
 
   const start = performance.now();
+  function setThemeColor(theme) {
+    const isLight = theme === "light";
+    const color = isLight ? [0.08, 0.08, 0.08] : [1, 1, 1];
+    const alphaScale = isLight ? 1.6 : 1.0;
+    gl.useProgram(program);
+    gl.uniform3f(colorLoc, color[0], color[1], color[2]);
+    gl.uniform1f(alphaLoc, alphaScale);
+  }
+
+  const initialTheme = document.body.dataset.theme === "light" ? "light" : "dark";
+  setThemeColor(initialTheme);
+  document.addEventListener("themechange", (event) => {
+    setThemeColor(event.detail);
+  });
+
   function render() {
     const t = (performance.now() - start) / 1000;
     gl.clear(gl.COLOR_BUFFER_BIT);

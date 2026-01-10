@@ -7,6 +7,7 @@ import { addDoc, collection } from "https://www.gstatic.com/firebasejs/9.23.0/fi
 const db = initFirebase();
 
 initLanguageSwitcher();
+initThemeSwitcher();
 initSecretPrompt();
 
 startSplashTimeline(() => {
@@ -29,6 +30,34 @@ function initSecretPrompt() {
       window.alert("Senha incorreta.");
     }
   });
+}
+
+function initThemeSwitcher() {
+  const switcher = document.getElementById("theme-switcher");
+  if (!switcher) return;
+
+  const stored = window.localStorage.getItem("theme");
+  const prefersDark = window.matchMedia
+    ? window.matchMedia("(prefers-color-scheme: dark)").matches
+    : true;
+  const initial = stored || (prefersDark ? "dark" : "light");
+  applyTheme(initial);
+  switcher.value = initial;
+
+  switcher.addEventListener("change", (event) => {
+    applyTheme(event.target.value);
+  });
+}
+
+function applyTheme(value) {
+  const theme = value === "light" ? "light" : "dark";
+  if (theme === "light") {
+    document.body.dataset.theme = "light";
+  } else {
+    document.body.removeAttribute("data-theme");
+  }
+  window.localStorage.setItem("theme", theme);
+  document.dispatchEvent(new CustomEvent("themechange", { detail: theme }));
 }
 
 function openProjectPopup(db) {

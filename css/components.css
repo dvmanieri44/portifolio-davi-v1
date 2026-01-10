@@ -78,7 +78,8 @@ button:hover {
   letter-spacing: 6px;
 }
 
-#language-switcher {
+#language-switcher,
+#theme-switcher {
   background: transparent;
   border: 1px solid var(--line);
   color: var(--muted);
@@ -88,12 +89,13 @@ button:hover {
   cursor: pointer;
 }
 
-#language-switcher option {
+#language-switcher option,
+#theme-switcher option {
   background: var(--bg);
   color: var(--text);
 }
 
 .panel-content a {
-  color: #ffffff;
+  color: var(--text-strong);
   text-decoration: underline;
 }
