@@ -40,43 +40,113 @@ function openProjectPopup(db) {
   const overlay = document.createElement("div");
   overlay.className = "project-popup-overlay";
 
+  const types = [
+    { key: "projects", label: "Projetos", title: "Novo projeto", success: "Projeto salvo." },
+    { key: "certificates", label: "Certificados", title: "Novo certificado", success: "Certificado salvo." },
+    { key: "experiences", label: "Experiencia", title: "Nova experiencia", success: "Experiencia salva." }
+  ];
+  const typeMap = new Map(types.map((type) => [type.key, type]));
+
   const card = document.createElement("div");
   card.className = "project-popup-card";
   card.innerHTML = `
-    <div class="project-popup-title">Novo projeto</div>
-    <form class="project-popup-form">
-      <label>
-        Titulo
-        <input name="title" type="text" autocomplete="off" required>
-      </label>
-      <label>
-        Descricao
-        <textarea name="descricao" rows="3"></textarea>
-      </label>
-      <label>
-        URL
-        <input name="url" type="url" autocomplete="off">
-      </label>
-      <div class="project-popup-row">
-        <label>
-          Inicio
-          <input name="dataInicio" type="date">
-        </label>
-        <label>
-          Fim
-          <input name="dataFinal" type="date">
-        </label>
+    <div class="project-popup-shell">
+      <nav class="project-popup-nav" aria-label="Adicionar">
+        ${types
+          .map((type, index) => `
+            <button type="button" class="project-popup-tab${index === 0 ? " is-active" : ""}" data-type="${type.key}">
+              ${type.label}
+            </button>
+          `)
+          .join("")}
+      </nav>
+      <div class="project-popup-body">
+        <div class="project-popup-title" data-popup-title>${types[0].title}</div>
+        <form class="project-popup-form" data-type="${types[0].key}">
+          <div class="project-popup-section" data-section="projects">
+            <label>
+              Titulo
+              <input name="title" type="text" autocomplete="off" required>
+            </label>
+            <label>
+              Descricao
+              <textarea name="descricao" rows="3"></textarea>
+            </label>
+            <label>
+              URL
+              <input name="url" type="url" autocomplete="off">
+            </label>
+            <div class="project-popup-row">
+              <label>
+                Inicio
+                <input name="dataInicio" type="date">
+              </label>
+              <label>
+                Fim
+                <input name="dataFinal" type="date">
+              </label>
+            </div>
+            <label class="project-popup-check">
+              <input name="finalizado" type="checkbox">
+              Finalizado
+            </label>
+          </div>
+          <div class="project-popup-section is-hidden" data-section="certificates">
+            <label>
+              Titulo
+              <input name="certTitle" type="text" autocomplete="off" required>
+            </label>
+            <label>
+              Descricao
+              <textarea name="certDescricao" rows="3"></textarea>
+            </label>
+            <label>
+              URL
+              <input name="certUrl" type="url" autocomplete="off">
+            </label>
+            <div class="project-popup-row">
+              <label>
+                Emissao
+                <input name="certEmissao" type="date">
+              </label>
+              <label>
+                Validade
+                <input name="certValidade" type="date">
+              </label>
+            </div>
+          </div>
+          <div class="project-popup-section is-hidden" data-section="experiences">
+            <label>
+              Nome da empresa
+              <input name="empresa" type="text" autocomplete="off" required>
+            </label>
+            <label>
+              Nome do cargo
+              <input name="cargo" type="text" autocomplete="off" required>
+            </label>
+            <div class="project-popup-row">
+              <label>
+                Data de entrada
+                <input name="entrada" type="date" required>
+              </label>
+              <label>
+                Data de saida
+                <input name="saida" type="date">
+              </label>
+            </div>
+            <label class="project-popup-check">
+              <input name="trabalhoAtual" type="checkbox">
+              Trabalho atual
+            </label>
+          </div>
+          <div class="project-popup-actions">
+            <button type="button" class="project-popup-cancel">Cancelar</button>
+            <button type="submit" class="project-popup-submit">Salvar</button>
+          </div>
+          <div class="project-popup-status" aria-live="polite"></div>
+        </form>
       </div>
-      <label class="project-popup-check">
-        <input name="finalizado" type="checkbox">
-        Finalizado
-      </label>
-      <div class="project-popup-actions">
-        <button type="button" class="project-popup-cancel">Cancelar</button>
-        <button type="submit" class="project-popup-submit">Salvar</button>
-      </div>
-      <div class="project-popup-status" aria-live="polite"></div>
-    </form>
+    </div>
   `;
 
   overlay.appendChild(card);
@@ -85,6 +155,20 @@ function openProjectPopup(db) {
   const form = card.querySelector(".project-popup-form");
   const cancelBtn = card.querySelector(".project-popup-cancel");
   const statusEl = card.querySelector(".project-popup-status");
+  const titleEl = card.querySelector("[data-popup-title]");
+  const tabs = Array.from(card.querySelectorAll(".project-popup-tab"));
+  const sections = Array.from(card.querySelectorAll(".project-popup-section"));
+  const saidaInput = card.querySelector('input[name="saida"]');
+  const trabalhoAtualInput = card.querySelector('input[name="trabalhoAtual"]');
+  const setActiveSection = (typeKey) => {
+    sections.forEach((section) => {
+      const isActive = section.dataset.section === typeKey;
+      section.classList.toggle("is-hidden", !isActive);
+      section.querySelectorAll("input, textarea, select").forEach((field) => {
+        field.disabled = !isActive;
+      });
+    });
+  };
 
   function close() {
     overlay.remove();
@@ -97,28 +181,80 @@ function openProjectPopup(db) {
     }
   });
 
+  if (trabalhoAtualInput && saidaInput) {
+    const syncSaidaState = () => {
+      const isCurrent = trabalhoAtualInput.checked;
+      saidaInput.disabled = isCurrent;
+      if (isCurrent) {
+        saidaInput.value = "";
+      }
+    };
+    trabalhoAtualInput.addEventListener("change", syncSaidaState);
+    syncSaidaState();
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const typeKey = tab.dataset.type;
+      if (!typeMap.has(typeKey)) return;
+      tabs.forEach((btn) => btn.classList.toggle("is-active", btn === tab));
+      const type = typeMap.get(typeKey);
+      titleEl.textContent = type.title;
+      form.dataset.type = typeKey;
+      setActiveSection(typeKey);
+      statusEl.textContent = "";
+    });
+  });
+  setActiveSection(form.dataset.type || "projects");
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (form.dataset.submitting === "true") return;
     form.dataset.submitting = "true";
     statusEl.textContent = "Salvando...";
 
+    const typeKey = form.dataset.type || "projects";
+    const type = typeMap.get(typeKey) || types[0];
     const formData = new FormData(form);
-    const inicio = formData.get("dataInicio");
-    const fim = formData.get("dataFinal");
 
-    const payload = {
-      title: String(formData.get("title") || ""),
-      descricao: String(formData.get("descricao") || ""),
-      url: String(formData.get("url") || ""),
-      dataInicio: inicio ? new Date(String(inicio)) : null,
-      dataFinal: fim ? new Date(String(fim)) : null,
-      finalizado: formData.get("finalizado") === "on"
-    };
+    let payload = {};
+    if (typeKey === "projects") {
+      const inicio = formData.get("dataInicio");
+      const fim = formData.get("dataFinal");
+      payload = {
+        title: String(formData.get("title") || ""),
+        descricao: String(formData.get("descricao") || ""),
+        url: String(formData.get("url") || ""),
+        dataInicio: inicio ? new Date(String(inicio)) : null,
+        dataFinal: fim ? new Date(String(fim)) : null,
+        finalizado: formData.get("finalizado") === "on"
+      };
+    } else if (typeKey === "certificates") {
+      const emissao = formData.get("certEmissao");
+      const validade = formData.get("certValidade");
+      payload = {
+        title: String(formData.get("certTitle") || ""),
+        descricao: String(formData.get("certDescricao") || ""),
+        url: String(formData.get("certUrl") || ""),
+        dataEmissao: emissao ? new Date(String(emissao)) : null,
+        dataValidade: validade ? new Date(String(validade)) : null
+      };
+    } else if (typeKey === "experiences") {
+      const entrada = formData.get("entrada");
+      const saida = formData.get("saida");
+      const trabalhoAtual = formData.get("trabalhoAtual") === "on";
+      payload = {
+        empresa: String(formData.get("empresa") || ""),
+        cargo: String(formData.get("cargo") || ""),
+        dataEntrada: entrada ? new Date(String(entrada)) : null,
+        dataSaida: trabalhoAtual ? null : (saida ? new Date(String(saida)) : null),
+        trabalhoAtual
+      };
+    }
 
     try {
-      await addDoc(collection(db, "projects"), payload);
-      statusEl.textContent = "Projeto salvo.";
+      await addDoc(collection(db, typeKey), payload);
+      statusEl.textContent = type.success;
       form.reset();
       window.setTimeout(close, 800);
     } catch (error) {
@@ -145,7 +281,7 @@ function ensureProjectPopupStyles() {
       z-index: 9999;
     }
     .project-popup-card {
-      width: min(520px, 92vw);
+      width: min(760px, 94vw);
       background: #0f1115;
       color: #f4f6fb;
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -154,11 +290,49 @@ function ensureProjectPopupStyles() {
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
       font-family: inherit;
     }
+    .project-popup-shell {
+      display: flex;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .project-popup-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 160px;
+      padding-right: 16px;
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .project-popup-tab {
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: transparent;
+      color: inherit;
+      padding: 8px 10px;
+      text-align: left;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      font-family: inherit;
+    }
+    .project-popup-tab.is-active {
+      border-color: rgba(255, 255, 255, 0.45);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .project-popup-body {
+      flex: 1;
+      min-width: 0;
+    }
     .project-popup-title {
       font-size: 18px;
       margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
+    }
+    .project-popup-section.is-hidden {
+      display: none;
     }
     .project-popup-form label {
       display: flex;
@@ -229,6 +403,22 @@ function ensureProjectPopupStyles() {
       font-size: 12px;
       min-height: 16px;
       opacity: 0.8;
+    }
+    @media (max-width: 640px) {
+      .project-popup-shell {
+        flex-direction: column;
+      }
+      .project-popup-nav {
+        flex-direction: row;
+        padding-right: 0;
+        padding-bottom: 12px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .project-popup-tab {
+        flex: 1;
+        text-align: center;
+      }
     }
   `;
   document.head.appendChild(style);
