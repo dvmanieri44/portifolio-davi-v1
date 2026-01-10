@@ -5,6 +5,7 @@ export function initMenuPanel(db) {
     "Home": "Ol ! Meu nome ‚ Davi Manieri, sou T‚cnico de Desenvolvimento de Sistemas e tenho forma‡Æo conclu¡da em Python, al‚m de habilidades com outras linguagens de programa‡Æo, l¢gica e exatas, juntamente com a dedica‡Æo e o empenho em cada atividade que me ‚ requisitada!\nEstou … disposi‡Æo para realizar trabalhos que estejam inseridos dentro do meu contexto de forma‡Æo acadˆmica!",
     "Projetos": "Carregando projetos...",
     "Experiencia": "Carregando experiencia...",
+    "Certificados": "Carregando certificados...",
     "Fale comigo": "- LinkedIn: <a href=\"https://www.linkedin.com/in/davi-ponce-manieri/\" target=\"_blank\" rel=\"noopener\">linkedin.com/in/davi-ponce-manieri</a>\n- GitHub: <a href=\"https://github.com/dvmanieri44\" target=\"_blank\" rel=\"noopener\">github.com/dvmanieri44</a>\n- Telefone: +55 (16) 997037115\n- Email: dvponce3@gmail.com"
   };
   const panel = document.querySelector('[data-panel]');
@@ -24,6 +25,12 @@ export function initMenuPanel(db) {
         panel.innerHTML = contentMap[label];
         panel.classList.remove('is-animating');
         loadExperiences(panel, db);
+        return;
+      }
+      if (label === "Certificados") {
+        panel.innerHTML = contentMap[label];
+        panel.classList.remove('is-animating');
+        loadCertificates(panel, db);
         return;
       }
       panel.innerHTML = contentMap[label] || label;
@@ -148,5 +155,50 @@ async function loadExperiences(panel, db) {
     panel.innerHTML = `<ul class="experience-timeline">${html}</ul>`;
   } catch (error) {
     panel.innerHTML = "N’o foi poss­vel carregar as experiencias.";
+  }
+}
+
+
+async function loadCertificates(panel, db) {
+  try {
+    const snapshot = await getDocs(collection(db, "certificates"));
+    const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    items.sort((a, b) => {
+      const fa = a.formacao ? 1 : 0;
+      const fb = b.formacao ? 1 : 0;
+      if (fa !== fb) return fb - fa;
+      const da = toDate(a.dataInicio)?.getTime() ?? 0;
+      const dbTime = toDate(b.dataInicio)?.getTime() ?? 0;
+      return dbTime - da;
+    });
+
+    if (items.length === 0) {
+      panel.innerHTML = "Nenhum certificado cadastrado.";
+      return;
+    }
+
+    const html = items.map((item) => {
+      const title = escapeHtml(item.title);
+      const instituicao = escapeHtml(item.instituicao);
+      const inicio = formatDate(item.dataInicio);
+      const fim = item.atual ? "Atual" : formatDate(item.dataFinal);
+      const periodo = [inicio, fim].filter(Boolean).join(" - ");
+      const status = item.atual ? "Em andamento" : "";
+      const formacao = item.formacao ? "Formacao" : "";
+      const meta = [periodo, status, formacao].filter(Boolean).join("  ·  ");
+
+      return `
+        <li class="certificate-item">
+          <div class="certificate-title">${title || "Certificado"}</div>
+          ${instituicao ? `<div class="certificate-org">${instituicao}</div>` : ""}
+          ${meta ? `<div class="certificate-meta">${meta}</div>` : ""}
+        </li>
+      `;
+    }).join("");
+
+    panel.innerHTML = `<ul class="certificate-list">${html}</ul>`;
+  } catch (error) {
+    panel.innerHTML = "Nao foi possivel carregar os certificados.";
   }
 }

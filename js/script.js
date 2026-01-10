@@ -94,26 +94,30 @@ function openProjectPopup(db) {
           <div class="project-popup-section is-hidden" data-section="certificates">
             <label>
               Titulo
-              <input name="certTitle" type="text" autocomplete="off" required>
+              <input name="certTitulo" type="text" autocomplete="off" required>
             </label>
             <label>
-              Descricao
-              <textarea name="certDescricao" rows="3"></textarea>
+              Instituicao emissora
+              <input name="certInstituicao" type="text" autocomplete="off" required>
             </label>
-            <label>
-              URL
-              <input name="certUrl" type="url" autocomplete="off">
+            <label class="project-popup-check">
+              <input name="certFormacao" type="checkbox">
+              Formacao
             </label>
             <div class="project-popup-row">
               <label>
-                Emissao
-                <input name="certEmissao" type="date">
+                Data de inicio
+                <input name="certInicio" type="date" required>
               </label>
               <label>
-                Validade
-                <input name="certValidade" type="date">
+                Data de fim
+                <input name="certFim" type="date">
               </label>
             </div>
+            <label class="project-popup-check">
+              <input name="certAtual" type="checkbox">
+              Fazendo atualmente
+            </label>
           </div>
           <div class="project-popup-section is-hidden" data-section="experiences">
             <label>
@@ -160,6 +164,8 @@ function openProjectPopup(db) {
   const sections = Array.from(card.querySelectorAll(".project-popup-section"));
   const saidaInput = card.querySelector('input[name="saida"]');
   const trabalhoAtualInput = card.querySelector('input[name="trabalhoAtual"]');
+  const certFimInput = card.querySelector('input[name="certFim"]');
+  const certAtualInput = card.querySelector('input[name="certAtual"]');
   const setActiveSection = (typeKey) => {
     sections.forEach((section) => {
       const isActive = section.dataset.section === typeKey;
@@ -191,6 +197,18 @@ function openProjectPopup(db) {
     };
     trabalhoAtualInput.addEventListener("change", syncSaidaState);
     syncSaidaState();
+  }
+
+  if (certAtualInput && certFimInput) {
+    const syncCertFimState = () => {
+      const isCurrent = certAtualInput.checked;
+      certFimInput.disabled = isCurrent;
+      if (isCurrent) {
+        certFimInput.value = "";
+      }
+    };
+    certAtualInput.addEventListener("change", syncCertFimState);
+    syncCertFimState();
   }
 
   tabs.forEach((tab) => {
@@ -230,14 +248,16 @@ function openProjectPopup(db) {
         finalizado: formData.get("finalizado") === "on"
       };
     } else if (typeKey === "certificates") {
-      const emissao = formData.get("certEmissao");
-      const validade = formData.get("certValidade");
+      const inicio = formData.get("certInicio");
+      const fim = formData.get("certFim");
+      const certAtual = formData.get("certAtual") === "on";
       payload = {
-        title: String(formData.get("certTitle") || ""),
-        descricao: String(formData.get("certDescricao") || ""),
-        url: String(formData.get("certUrl") || ""),
-        dataEmissao: emissao ? new Date(String(emissao)) : null,
-        dataValidade: validade ? new Date(String(validade)) : null
+        title: String(formData.get("certTitulo") || ""),
+        instituicao: String(formData.get("certInstituicao") || ""),
+        dataInicio: inicio ? new Date(String(inicio)) : null,
+        dataFinal: certAtual ? null : (fim ? new Date(String(fim)) : null),
+        atual: certAtual,
+        formacao: formData.get("certFormacao") === "on"
       };
     } else if (typeKey === "experiences") {
       const entrada = formData.get("entrada");
