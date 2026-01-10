@@ -1,39 +1,46 @@
 ﻿import { collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { t } from "./i18n.js";
 
 export function initMenuPanel(db) {
-  const contentMap = {
-    "Home": "Ol ! Meu nome ‚ Davi Manieri, sou T‚cnico de Desenvolvimento de Sistemas e tenho forma‡Æo conclu¡da em Python, al‚m de habilidades com outras linguagens de programa‡Æo, l¢gica e exatas, juntamente com a dedica‡Æo e o empenho em cada atividade que me ‚ requisitada!\nEstou … disposi‡Æo para realizar trabalhos que estejam inseridos dentro do meu contexto de forma‡Æo acadˆmica!",
-    "Projetos": "Carregando projetos...",
-    "Experiencia": "Carregando experiencia...",
-    "Certificados": "Carregando certificados...",
-    "Fale comigo": "- LinkedIn: <a href=\"https://www.linkedin.com/in/davi-ponce-manieri/\" target=\"_blank\" rel=\"noopener\">linkedin.com/in/davi-ponce-manieri</a>\n- GitHub: <a href=\"https://github.com/dvmanieri44\" target=\"_blank\" rel=\"noopener\">github.com/dvmanieri44</a>\n- Telefone: +55 (16) 997037115\n- Email: dvponce3@gmail.com"
-  };
+  let currentSection = null;
   const panel = document.querySelector('[data-panel]');
   const buttons = document.querySelectorAll('.menu-btn');
   if (!panel || buttons.length === 0) return;
 
-  function setPanel(label) {
+  function contentMap() {
+    return {
+      home: t("panelHome"),
+      projects: t("panelProjectsLoading"),
+      experiences: t("panelExperiencesLoading"),
+      certificates: t("panelCertificatesLoading"),
+      contact: t("panelContact")
+    };
+  }
+
+  function setPanel(section) {
+    const map = contentMap();
+    currentSection = section;
     panel.classList.add('is-animating');
     window.setTimeout(() => {
-      if (label === "Projetos") {
-        panel.innerHTML = contentMap[label];
+      if (section === "projects") {
+        panel.innerHTML = map[section];
         panel.classList.remove('is-animating');
         loadProjects(panel, db);
         return;
       }
-      if (label === "Experiencia") {
-        panel.innerHTML = contentMap[label];
+      if (section === "experiences") {
+        panel.innerHTML = map[section];
         panel.classList.remove('is-animating');
         loadExperiences(panel, db);
         return;
       }
-      if (label === "Certificados") {
-        panel.innerHTML = contentMap[label];
+      if (section === "certificates") {
+        panel.innerHTML = map[section];
         panel.classList.remove('is-animating');
         loadCertificates(panel, db);
         return;
       }
-      panel.innerHTML = contentMap[label] || label;
+      panel.innerHTML = map[section] || section;
       panel.classList.remove('is-animating');
     }, 180);
   }
@@ -43,8 +50,15 @@ export function initMenuPanel(db) {
       if (btn.tagName === 'A' && btn.hasAttribute('download')) {
         return;
       }
-      setPanel(btn.textContent.trim());
+      const section = btn.dataset.section || btn.textContent.trim();
+      setPanel(section);
     });
+  });
+
+  document.addEventListener("languagechange", () => {
+    if (currentSection) {
+      setPanel(currentSection);
+    }
   });
 }
 
@@ -67,7 +81,8 @@ function toDate(value) {
 
 function formatDate(value) {
   const date = toDate(value);
-  return date ? date.toLocaleDateString("pt-BR") : "";
+  const locale = document.documentElement.lang || "pt-BR";
+  return date ? date.toLocaleDateString(locale) : "";
 }
 
 async function loadProjects(panel, db) {
@@ -82,7 +97,7 @@ async function loadProjects(panel, db) {
     });
 
     if (items.length === 0) {
-      panel.innerHTML = "Nenhum projeto cadastrado.";
+      panel.innerHTML = t("emptyProjects");
       return;
     }
 
@@ -92,16 +107,16 @@ async function loadProjects(panel, db) {
       const url = typeof item.url === "string" ? item.url : "";
       const inicio = formatDate(item.dataInicio);
       const fim = formatDate(item.dataFinal);
-      const status = item.finalizado ? "Finalizado" : "Em andamento";
+      const status = item.finalizado ? t("projectStatusDone") : t("projectStatusOngoing");
       const dateText = [inicio, fim].filter(Boolean).join(" - ");
-      const meta = [dateText, status].filter(Boolean).join("   ");
+      const meta = [dateText, status].filter(Boolean).join("  ·  ");
       const link = url
-        ? `<a class="project-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">Abrir projeto</a>`
+        ? `<a class="project-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">${t("projectLinkOpen")}</a>`
         : "";
 
       return `
         <li class="project-item">
-          <div class="project-title">${title || "Projeto"}</div>
+          <div class="project-title">${title || t("menuProjects")}</div>
           ${meta ? `<div class="project-meta">${meta}</div>` : ""}
           ${desc ? `<div class="project-desc">${desc}</div>` : ""}
           ${link}
@@ -111,7 +126,7 @@ async function loadProjects(panel, db) {
 
     panel.innerHTML = `<ul class="project-list">${html}</ul>`;
   } catch (error) {
-    panel.innerHTML = "NÆo foi poss¡vel carregar os projetos.";
+    panel.innerHTML = t("errorProjects");
   }
 }
 
@@ -127,7 +142,7 @@ async function loadExperiences(panel, db) {
     });
 
     if (items.length === 0) {
-      panel.innerHTML = "Nenhuma experiencia cadastrada.";
+      panel.innerHTML = t("emptyExperiences");
       return;
     }
 
@@ -135,17 +150,17 @@ async function loadExperiences(panel, db) {
       const empresa = escapeHtml(item.empresa);
       const cargo = escapeHtml(item.cargo);
       const entrada = formatDate(item.dataEntrada);
-      const saida = item.trabalhoAtual ? "Atual" : formatDate(item.dataSaida);
+      const saida = item.trabalhoAtual ? t("labelCurrent") : formatDate(item.dataSaida);
       const periodo = [entrada, saida].filter(Boolean).join(" - ");
-      const status = item.trabalhoAtual ? "Trabalho atual" : "";
+      const status = item.trabalhoAtual ? t("experienceCurrent") : "";
       const meta = [periodo, status].filter(Boolean).join("  ·  ");
 
       return `
         <li class="experience-item">
           <span class="experience-dot"></span>
           <div class="experience-card">
-            <div class="experience-role">${cargo || "Cargo"}</div>
-            <div class="experience-company">${empresa || "Empresa"}</div>
+            <div class="experience-role">${cargo || t("popupLabelRole")}</div>
+            <div class="experience-company">${empresa || t("popupLabelCompany")}</div>
             ${meta ? `<div class="experience-meta">${meta}</div>` : ""}
           </div>
         </li>
@@ -154,10 +169,9 @@ async function loadExperiences(panel, db) {
 
     panel.innerHTML = `<ul class="experience-timeline">${html}</ul>`;
   } catch (error) {
-    panel.innerHTML = "N’o foi poss­vel carregar as experiencias.";
+    panel.innerHTML = t("errorExperiences");
   }
 }
-
 
 async function loadCertificates(panel, db) {
   try {
@@ -174,7 +188,7 @@ async function loadCertificates(panel, db) {
     });
 
     if (items.length === 0) {
-      panel.innerHTML = "Nenhum certificado cadastrado.";
+      panel.innerHTML = t("emptyCertificates");
       return;
     }
 
@@ -182,15 +196,15 @@ async function loadCertificates(panel, db) {
       const title = escapeHtml(item.title);
       const instituicao = escapeHtml(item.instituicao);
       const inicio = formatDate(item.dataInicio);
-      const fim = item.atual ? "Atual" : formatDate(item.dataFinal);
+      const fim = item.atual ? t("labelCurrent") : formatDate(item.dataFinal);
       const periodo = [inicio, fim].filter(Boolean).join(" - ");
-      const status = item.atual ? "Em andamento" : "";
-      const formacao = item.formacao ? "Formacao" : "";
+      const status = item.atual ? t("certificateStatusCurrent") : "";
+      const formacao = item.formacao ? t("certificateFormacao") : "";
       const meta = [periodo, status, formacao].filter(Boolean).join("  ·  ");
 
       return `
         <li class="certificate-item">
-          <div class="certificate-title">${title || "Certificado"}</div>
+          <div class="certificate-title">${title || t("menuCertificates")}</div>
           ${instituicao ? `<div class="certificate-org">${instituicao}</div>` : ""}
           ${meta ? `<div class="certificate-meta">${meta}</div>` : ""}
         </li>
@@ -199,6 +213,8 @@ async function loadCertificates(panel, db) {
 
     panel.innerHTML = `<ul class="certificate-list">${html}</ul>`;
   } catch (error) {
-    panel.innerHTML = "Nao foi possivel carregar os certificados.";
+    panel.innerHTML = t("errorCertificates");
   }
 }
+
+

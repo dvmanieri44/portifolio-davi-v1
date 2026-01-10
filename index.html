@@ -25,15 +25,15 @@
     <span class="logo">D</span>
 
     <div class="nav-right">
-        <span class="status">ONLINE</span>
+        <span class="status" data-i18n="statusOnline">ONLINE</span>
 
         <select id="language-switcher">
-        <option value="pt">PT</option>
-        <option value="en">EN</option>
+        <option value="pt" data-i18n="langPt">PT</option>
+        <option value="en" data-i18n="langEn">EN</option>
         </select>
         <select id="theme-switcher">
-        <option value="dark">Escuro</option>
-        <option value="light">Claro</option>
+        <option value="dark" data-i18n="themeDark">Escuro</option>
+        <option value="light" data-i18n="themeLight">Claro</option>
         </select>
     </div>
     </header>
@@ -53,13 +53,13 @@
         e mudar a vida de quem encontra.
         </p>
 
-      <div class="menu" aria-label="Navegacao principal">
-        <button class="menu-btn">Home</button>
-        <a class="menu-btn" href="img/curriculum.pdf" download>Curriculo</a>
-        <button class="menu-btn">Projetos</button>
-        <button class="menu-btn">Certificados</button>
-        <button class="menu-btn">Experiencia</button>
-        <button class="menu-btn">Fale comigo</button>
+      <div class="menu" aria-label="Navegacao principal" data-i18n-attr="aria-label:menuAria">
+        <button class="menu-btn" data-section="home" data-i18n="menuHome">Home</button>
+        <a class="menu-btn" href="img/curriculum.pdf" download data-i18n="menuResume">Curriculo</a>
+        <button class="menu-btn" data-section="projects" data-i18n="menuProjects">Projetos</button>
+        <button class="menu-btn" data-section="certificates" data-i18n="menuCertificates">Certificados</button>
+        <button class="menu-btn" data-section="experiences" data-i18n="menuExperiences">Experiencia</button>
+        <button class="menu-btn" data-section="contact" data-i18n="menuContact">Fale comigo</button>
       </div>
     </div>
         <div class="hero-frame" aria-hidden="true">
@@ -75,7 +75,7 @@ Estou à disposição para realizar trabalhos que estejam inseridos dentro do me
 
   <footer class="footer">
     <span> DAVI MANIERI Â© 2026</span>
-    <span>Brasil</span>
+    <span data-i18n="location">Brasil</span>
   </footer>
   </div>
 
@@ -84,3 +84,4 @@ Estou à disposição para realizar trabalhos que estejam inseridos dentro do me
   <script type="module" src="js/app.min.js"></script>
 </body>
 </html>
+

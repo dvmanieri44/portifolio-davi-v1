@@ -1,6 +1,6 @@
 ﻿import { initFirebase } from "./firebase.js";
 import { startSplashTimeline } from "./animations.js";
-import { initLanguageSwitcher } from "./i18n.js";
+import { initLanguageSwitcher, t } from "./i18n.js";
 import { initMenuPanel } from "./menu.js";
 import { addDoc, collection } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
@@ -23,11 +23,11 @@ function initSecretPrompt() {
     clicks += 1;
     if (clicks < 5) return;
     clicks = 0;
-    const answer = window.prompt("Digite a senha");
+    const answer = window.prompt(t("promptPassword"));
     if (answer === "2040") {
       openProjectPopup(db);
     } else if (answer !== null) {
-      window.alert("Senha incorreta.");
+      window.alert(t("promptWrongPassword"));
     }
   });
 }
@@ -70,9 +70,9 @@ function openProjectPopup(db) {
   overlay.className = "project-popup-overlay";
 
   const types = [
-    { key: "projects", label: "Projetos", title: "Novo projeto", success: "Projeto salvo." },
-    { key: "certificates", label: "Certificados", title: "Novo certificado", success: "Certificado salvo." },
-    { key: "experiences", label: "Experiencia", title: "Nova experiencia", success: "Experiencia salva." }
+    { key: "projects", label: t("popupTabProjects"), title: t("popupTitleProject"), success: t("popupStatusProjectSaved") },
+    { key: "certificates", label: t("popupTabCertificates"), title: t("popupTitleCertificate"), success: t("popupStatusCertificateSaved") },
+    { key: "experiences", label: t("popupTabExperiences"), title: t("popupTitleExperience"), success: t("popupStatusExperienceSaved") }
   ];
   const typeMap = new Map(types.map((type) => [type.key, type]));
 
@@ -80,7 +80,7 @@ function openProjectPopup(db) {
   card.className = "project-popup-card";
   card.innerHTML = `
     <div class="project-popup-shell">
-      <nav class="project-popup-nav" aria-label="Adicionar">
+      <nav class="project-popup-nav" aria-label="${t("popupAriaAdd")}">
         ${types
           .map((type, index) => `
             <button type="button" class="project-popup-tab${index === 0 ? " is-active" : ""}" data-type="${type.key}">
@@ -94,87 +94,87 @@ function openProjectPopup(db) {
         <form class="project-popup-form" data-type="${types[0].key}">
           <div class="project-popup-section" data-section="projects">
             <label>
-              Titulo
+              ${t("popupLabelTitle")}
               <input name="title" type="text" autocomplete="off" required>
             </label>
             <label>
-              Descricao
+              ${t("popupLabelDescription")}
               <textarea name="descricao" rows="3"></textarea>
             </label>
             <label>
-              URL
+              ${t("popupLabelUrl")}
               <input name="url" type="url" autocomplete="off">
             </label>
             <div class="project-popup-row">
               <label>
-                Inicio
+                ${t("popupLabelStart")}
                 <input name="dataInicio" type="date">
               </label>
               <label>
-                Fim
+                ${t("popupLabelEnd")}
                 <input name="dataFinal" type="date">
               </label>
             </div>
             <label class="project-popup-check">
               <input name="finalizado" type="checkbox">
-              Finalizado
+              ${t("popupLabelFinished")}
             </label>
           </div>
           <div class="project-popup-section is-hidden" data-section="certificates">
             <label>
-              Titulo
+              ${t("popupLabelTitle")}
               <input name="certTitulo" type="text" autocomplete="off" required>
             </label>
             <label>
-              Instituicao emissora
+              ${t("popupLabelInstitution")}
               <input name="certInstituicao" type="text" autocomplete="off" required>
             </label>
             <label class="project-popup-check">
               <input name="certFormacao" type="checkbox">
-              Formacao
+              ${t("certificateFormacao")}
             </label>
             <div class="project-popup-row">
               <label>
-                Data de inicio
+                ${t("popupLabelStart")}
                 <input name="certInicio" type="date" required>
               </label>
               <label>
-                Data de fim
+                ${t("popupLabelEnd")}
                 <input name="certFim" type="date">
               </label>
             </div>
             <label class="project-popup-check">
               <input name="certAtual" type="checkbox">
-              Fazendo atualmente
+              ${t("popupLabelCurrent")}
             </label>
           </div>
           <div class="project-popup-section is-hidden" data-section="experiences">
             <label>
-              Nome da empresa
+              ${t("popupLabelCompany")}
               <input name="empresa" type="text" autocomplete="off" required>
             </label>
             <label>
-              Nome do cargo
+              ${t("popupLabelRole")}
               <input name="cargo" type="text" autocomplete="off" required>
             </label>
             <div class="project-popup-row">
               <label>
-                Data de entrada
+                ${t("popupLabelEntryDate")}
                 <input name="entrada" type="date" required>
               </label>
               <label>
-                Data de saida
+                ${t("popupLabelExitDate")}
                 <input name="saida" type="date">
               </label>
             </div>
             <label class="project-popup-check">
               <input name="trabalhoAtual" type="checkbox">
-              Trabalho atual
+              ${t("popupLabelCurrentJob")}
             </label>
           </div>
           <div class="project-popup-actions">
-            <button type="button" class="project-popup-cancel">Cancelar</button>
-            <button type="submit" class="project-popup-submit">Salvar</button>
+            <button type="button" class="project-popup-cancel">${t("popupButtonCancel")}</button>
+            <button type="submit" class="project-popup-submit">${t("popupButtonSave")}</button>
           </div>
           <div class="project-popup-status" aria-live="polite"></div>
         </form>
@@ -258,7 +258,7 @@ function openProjectPopup(db) {
     event.preventDefault();
     if (form.dataset.submitting === "true") return;
     form.dataset.submitting = "true";
-    statusEl.textContent = "Salvando...";
+    statusEl.textContent = t("popupStatusSaving");
 
     const typeKey = form.dataset.type || "projects";
     const type = typeMap.get(typeKey) || types[0];
@@ -307,7 +307,7 @@ function openProjectPopup(db) {
       form.reset();
       window.setTimeout(close, 800);
     } catch (error) {
-      statusEl.textContent = "Erro ao salvar o projeto.";
+      statusEl.textContent = t("popupStatusError");
     } finally {
       form.dataset.submitting = "false";
     }
