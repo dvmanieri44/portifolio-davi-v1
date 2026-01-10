@@ -1,10 +1,11 @@
-﻿:root {
+:root {
   --bg: #0b0c0d;
   --text: #e5e5e5;
   --text-strong: #ffffff;
   --muted: #8a8a8a;
   --line: rgba(255,255,255,0.08);
-  --page-pad: 120px;
+  --page-pad: clamp(24px, 8vw, 120px);
+  --page-pad-tight: clamp(16px, 4vw, 48px);
 }
 
 body[data-theme="light"] {
@@ -25,8 +26,9 @@ body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
   color: var(--text);
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .hidden {

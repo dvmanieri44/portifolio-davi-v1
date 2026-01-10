@@ -1,4 +1,4 @@
-﻿button {
+button {
   margin-top: 48px;
   background: transparent;
   border: 1px solid var(--line);
@@ -98,4 +98,27 @@ button:hover {
 .panel-content a {
   color: var(--text-strong);
   text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .menu {
+    width: 100%;
+  }
+
+  .menu-btn {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 520px) {
+  .menu-btn {
+    height: 40px;
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .splash h2 {
+    font-size: 22px;
+  }
 }

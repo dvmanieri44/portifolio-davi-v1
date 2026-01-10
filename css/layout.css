@@ -1,9 +1,9 @@
-﻿/* NAV */
+/* NAV */
 .nav {
   position: fixed;
   top: 0;
   width: 100%;
-  padding: 24px 48px;
+  padding: 24px var(--page-pad-tight);
   display: flex;
   justify-content: space-between;
   font-size: 12px;
@@ -13,7 +13,8 @@
 
 /* HERO */
 .hero {
-  height: 100vh;
+  min-height: 100vh;
+  height: auto;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -23,6 +24,7 @@
 
 .content {
   max-width: 500px;
+  width: 100%;
   position: relative;
 }
 
@@ -68,7 +70,7 @@ p {
 .hero-frame {
   width: min(70vw, calc(100vw - (var(--page-pad) * 2) - 520px));
   max-width: calc(100vw - (var(--page-pad) * 2));
-  min-width: 320px;
+  min-width: min(320px, 100%);
   aspect-ratio: 1 / 1;
   height: auto;
   max-height: calc(100vh - (var(--page-pad) * 2));
@@ -124,7 +126,7 @@ p {
   position: fixed;
   bottom: 0;
   width: 100%;
-  padding: 24px 48px;
+  padding: 24px var(--page-pad-tight);
   display: flex;
   justify-content: space-between;
   font-size: 11px;
@@ -146,7 +148,7 @@ p {
   .hero {
     flex-direction: column;
     justify-content: center;
-    padding: 96px 24px;
+    padding: 96px 24px 72px;
   }
 
   .hero-frame {
@@ -156,8 +158,89 @@ p {
     margin-top: 32px;
   }
 
+  .nav {
+    position: static;
+    padding: 20px var(--page-pad-tight);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
   .nav-right {
     position: static;
     transform: none;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .footer {
+    position: static;
+    padding: 20px var(--page-pad-tight);
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 720px) {
+  h1 {
+    font-size: 46px;
+    letter-spacing: 3px;
+  }
+
+  h1 span {
+    font-size: 12px;
+    letter-spacing: 4px;
+  }
+
+  h1 span:first-child {
+    font-size: 50px;
+    letter-spacing: 3px;
+  }
+
+  p {
+    font-size: 13px;
+  }
+
+  .vertical-line {
+    left: -16px;
+  }
+
+  .hero-frame {
+    width: 100%;
+    max-width: 520px;
+    min-width: 0;
+  }
+
+  .panel-content {
+    font-size: 15px;
+    letter-spacing: 0.5px;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero {
+    padding: 72px 16px 40px;
+    gap: 32px;
+  }
+
+  .nav {
+    padding: 16px var(--page-pad-tight);
+  }
+
+  .footer {
+    padding: 16px var(--page-pad-tight);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  h1 {
+    font-size: 38px;
+  }
+
+  h1 span:first-child {
+    font-size: 40px;
+  }
+
+  .panel-content {
+    font-size: 14px;
   }
 }
