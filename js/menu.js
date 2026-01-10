@@ -45,6 +45,8 @@ export function initMenuPanel(db) {
     }, 180);
   }
 
+  setPanel("home");
+
   buttons.forEach((btn) => {
     btn.addEventListener('click', () => {
       if (btn.tagName === 'A' && btn.hasAttribute('download')) {
