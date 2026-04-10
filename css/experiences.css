@@ -26,6 +26,8 @@
 .experience-item {
   position: relative;
   padding-left: 28px;
+  animation: card-enter 0.35s ease both;
+  opacity: 0;
 }
 
 .experience-dot {
@@ -38,9 +40,23 @@
   border: 1px solid var(--muted);
   background: var(--bg);
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04);
+  transition: border-color 0.3s ease;
+}
+
+.experience-item--current .experience-dot {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(103, 232, 249, 0.1);
+}
+
+.exp-year {
+  color: var(--accent);
+  font-weight: 300;
+  margin-right: 6px;
+  letter-spacing: 1px;
 }
 
 .experience-card {
+  position: relative;
   border: 1px solid var(--line);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 60%);
   border-radius: 12px;
@@ -66,7 +82,7 @@
   font-size: 11px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: #b5b5b5;
+  color: var(--muted);
 }
 
 .experience-timeline::-webkit-scrollbar {

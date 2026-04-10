@@ -17,13 +17,37 @@
 .project-item {
   position: relative;
   border: 1px solid var(--line);
+  border-left-width: 2px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 60%);
   padding: 20px;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+  animation: card-enter 0.35s ease both;
+  opacity: 0;
 }
+
+.project-item[data-status="done"] {
+  border-left-color: var(--accent);
+}
+
+.project-item[data-status="ongoing"] {
+  border-left-color: rgba(251, 191, 36, 0.55);
+}
+
+.project-status-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 5px;
+  margin-bottom: 1px;
+}
+
+.project-item[data-status="done"]    .project-status-dot { background: var(--accent); }
+.project-item[data-status="ongoing"] .project-status-dot { background: rgba(251, 191, 36, 0.8); }
 
 .project-item:hover {
   transform: translateY(-2px);
@@ -43,7 +67,7 @@
 .project-meta {
   margin-top: 0;
   font-size: 11px;
-  color: #b5b5b5;
+  color: var(--muted);
   letter-spacing: 1px;
   text-transform: uppercase;
   line-height: 1.1;

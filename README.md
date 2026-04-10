@@ -14,12 +14,12 @@ Site de portfolio pessoal com secoes de projetos, certificados, experiencias e c
 - `img/`: imagens e assets
 
 ## Como executar
-Opcao simples:
-1. Abra `index.html` no navegador.
-
 Opcao recomendada:
 1. Rode um servidor local (ex.: Live Server no VS Code).
 2. Acesse `http://localhost` no navegador.
+
+Observacao:
+- Evite abrir `index.html` diretamente via `file://`, porque isso pode impedir ou dificultar o carregamento do Firebase no navegador.
 
 
 ## Idioma e tema

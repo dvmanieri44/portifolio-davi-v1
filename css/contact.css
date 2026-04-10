@@ -1,0 +1,113 @@
+.contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.contact-list::-webkit-scrollbar { width: 4px; }
+.contact-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 60%);
+  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+  animation: card-enter 0.35s ease both;
+  opacity: 0;
+}
+
+.contact-item--link {
+  cursor: pointer;
+}
+
+.contact-item--link:hover {
+  transform: translateY(-2px);
+  border-color: var(--muted);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 60%);
+}
+
+.contact-item--copy:hover {
+  border-color: rgba(103, 232, 249, 0.35);
+}
+
+.contact-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 300;
+  min-width: 72px;
+  flex-shrink: 0;
+}
+
+.contact-value {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 200;
+  color: var(--text);
+  letter-spacing: 0;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contact-item--link .contact-value:hover {
+  color: var(--text-strong);
+}
+
+.contact-arrow {
+  font-size: 14px;
+  color: var(--muted);
+  opacity: 0.5;
+  transition: opacity 0.2s, transform 0.2s;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.contact-item--link:hover .contact-arrow {
+  opacity: 1;
+  transform: translate(2px, -2px);
+  color: var(--accent);
+}
+
+.contact-copy-btn {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 4px 9px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 0;
+  flex-shrink: 0;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.contact-copy-btn:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.contact-copy-btn.is-copied {
+  color: var(--accent);
+  border-color: var(--accent);
+}
