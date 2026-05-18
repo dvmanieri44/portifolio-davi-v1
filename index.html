@@ -1,90 +1,31 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Davi - Portfolio</title>
+  <title>Davi Manieri — Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,200;0,300;0,400;0,500;1,300&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <link rel="icon" href="img/iconSite.png" type="image/png">
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100;0,200;0,300;0,400;1,200;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div id="root"></div>
 
-  <div class="splash">
-    <div class="splash-content">
-        <span class="splash-line"></span>
-        <h2 data-i18n="splash">
-            Portifólio de<br><strong>Davi Manieri</strong>
-        </h2>
-    </div>
-  </div>
+  <!-- React + Babel -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-  <div class="app hidden">
-    <header class="nav">
-    <span class="logo">D</span>
-
-    <div class="nav-right">
-        <span class="status" data-i18n="statusOnline">ONLINE</span>
-
-        <select id="language-switcher">
-        <option value="pt" data-i18n="langPt">PT</option>
-        <option value="en" data-i18n="langEn">EN</option>
-        </select>
-        <select id="theme-switcher">
-        <option value="dark" data-i18n="themeDark">Escuro</option>
-        <option value="light" data-i18n="themeLight">Claro</option>
-        </select>
-    </div>
-    </header>
-
-
-  <main class="hero">
-    <div class="content">
-      <span class="vertical-line"></span>
-
-        <h1>
-        <span data-i18n="name">DAVI MANIERI</span><br>
-        <span data-i18n="role">ENGENHEIRO DE COMPUTAÇÃO</span>
-        </h1>
-
-                <p data-i18n="subtitle">
-        Nascido em São Carlos, São Paulo, com a missão de melhorar a cada dia<br>
-        e mudar a vida de quem encontra.
-        </p>
-
-      <div class="menu" aria-label="Navegacao principal" data-i18n-attr="aria-label:menuAria">
-        <button class="menu-btn" data-section="home" data-i18n="menuHome">Home</button>
-        <a class="menu-btn" href="img/curriculum.pdf" download data-i18n="menuResume">Curriculo</a>
-        <button class="menu-btn" data-section="projects" data-i18n="menuProjects">Projetos</button>
-        <button class="menu-btn" data-section="certificates" data-i18n="menuCertificates">Certificados</button>
-        <button class="menu-btn" data-section="experiences" data-i18n="menuExperiences">Experiencia</button>
-        <button class="menu-btn" data-section="contact" data-i18n="menuContact">Fale comigo</button>
-      </div>
-    </div>
-        <div class="hero-frame" aria-hidden="true">
-      <canvas class="hero-canvas"></canvas>
-      <div class="hero-panel" role="region" aria-live="polite">
-        <div class="panel-content" data-panel>
-Programador na Tecnomotor Eletronica, Tecnico em Desenvolvimento de Sistemas (SENAI) e
- estudante de Engenharia da Computacao pela UNIVESP.Formacao em Python, mais de 20 
- certificados em tecnologia e solida base em logica e desenvolvimento de software. Perfil pratico, 
- analitico e focado em resultados.
-</div>
-      </div>
-    </div>
-  </main>
-
-  <footer class="footer">
-    <span> DAVI MANIERI © 2026</span>
-    <span data-i18n="location">Brasil</span>
-  </footer>
-  </div>
-
-  <!-- anime.js -->
-  <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js"></script>
-  <script type="module" src="js/script.js"></script>
+  <!-- App code (order matters) -->
+  <script src="data.js"></script>
+  <script type="module" src="js/refactor-data.js"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="terminal.jsx"></script>
+  <script type="text/babel" src="sections.jsx"></script>
+  <script type="text/babel" src="app.jsx"></script>
 </body>
 </html>
-
