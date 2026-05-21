@@ -18,8 +18,10 @@ function PromptLine({ command }) {
   );
 }
 
-function Terminal() {
-  const data = window.PORTFOLIO_DATA;
+function Terminal({ lang = "pt" }) {
+  const data = window.getPortfolioData?.(lang) || window.PORTFOLIO_DATA;
+  const copy = window.getPortfolioCopy?.(lang) || window.PORTFOLIO_COPY.pt;
+  const term = copy.terminal;
   const [history, setHistory] = useState([]);   // [{ cmd, output: jsx[] }]
   const [draft, setDraft] = useState("");
   const [bootDone, setBootDone] = useState(false);
@@ -28,12 +30,13 @@ function Terminal() {
 
   // Boot sequence (typed welcome)
   useEffect(() => {
-    const lines = [
-      { delay: 200,  kind: "system", text: "› inicializando sessão segura..." },
-      { delay: 550,  kind: "system", text: "› conectado · " + data.identity.location },
-      { delay: 900,  kind: "system", text: "› sessão: guest · perfil: read-only" },
-      { delay: 1300, kind: "system", text: "› digite 'help' pra começar." },
-    ];
+    setHistory([]);
+    setBootDone(false);
+    const lines = term.boot.map((text, index) => ({
+      delay: [200, 550, 900, 1300][index],
+      kind: "system",
+      text: text.replace("{location}", data.identity.location),
+    }));
     const timers = lines.map((l, i) =>
       setTimeout(() => {
         setHistory((h) => [...h, { boot: true, jsx: <TerminalLine kind={l.kind}>{l.text}</TerminalLine> }]);
@@ -41,7 +44,7 @@ function Terminal() {
       }, l.delay)
     );
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [lang, data.identity.location]);
 
   // Autoscroll
   useEffect(() => {
@@ -67,16 +70,16 @@ function Terminal() {
       case "help": case "?": case "ajuda":
         output = (
           <>
-            <TerminalLine kind="system">comandos disponíveis</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">about</span>      sobre mim</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">skills</span>     stack técnica</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">projetos</span>   últimos projetos</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">exp</span>        experiência</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">certs</span>      certificados (resumo)</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">contato</span>    como me chamar</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">social</span>     links sociais</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">whoami</span>     identidade</TerminalLine>
-            <TerminalLine kind="default">{"  "}<span className="kw">clear</span>      limpar terminal</TerminalLine>
+            <TerminalLine kind="system">{term.commandsAvailable}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">about</span>      {term.help.about}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">skills</span>     {term.help.skills}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">projects</span>   {term.help.projects}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">exp</span>        {term.help.exp}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">certs</span>      {term.help.certs}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">contact</span>    {term.help.contact}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">social</span>     {term.help.social}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">whoami</span>     {term.help.whoami}</TerminalLine>
+            <TerminalLine kind="default">{"  "}<span className="kw">clear</span>      {term.help.clear}</TerminalLine>
           </>
         );
         break;
@@ -109,7 +112,11 @@ function Terminal() {
       case "projetos": case "projects": case "ls projects":
         output = (
           <>
-            <TerminalLine kind="system">{data.projects.length} projetos · {data.projects.filter(p => p.status === 'ongoing').length} em andamento</TerminalLine>
+            <TerminalLine kind="system">
+              {term.projectsSummary
+                .replace("{total}", data.projects.length)
+                .replace("{ongoing}", data.projects.filter(p => p.status === "ongoing").length)}
+            </TerminalLine>
             <TerminalLine kind="default">{" "}</TerminalLine>
             {data.projects.map((p) => (
               <TerminalLine key={p.id} kind="default">
@@ -132,10 +139,10 @@ function Terminal() {
                   <span className="kw">{e.role}</span>
                   <span className="dim"> @ </span>
                   {e.company}
-                  {e.current ? <span className="kw"> · atual</span> : null}
+                  {e.current ? <span className="kw"> · {term.current}</span> : null}
                 </TerminalLine>
                 <TerminalLine kind="default" >
-                  <span className="dim">{e.period.start} — {e.period.end || "presente"} · {e.meta}</span>
+                  <span className="dim">{e.period.start} — {e.period.end || term.present} · {e.meta}</span>
                 </TerminalLine>
                 <TerminalLine kind="default">{e.summary}</TerminalLine>
               </div>
@@ -148,7 +155,7 @@ function Terminal() {
         output = (
           <>
             <TerminalLine kind="default">
-              <span className="kw">{data.summary.totalCerts}+</span> certificados em tecnologia
+              <span className="kw">{data.summary.totalCerts}+</span> {term.certsSummary}
             </TerminalLine>
             <TerminalLine kind="default">{" "}</TerminalLine>
             {data.certificates.slice(0, 6).map((c, i) => (
@@ -159,7 +166,7 @@ function Terminal() {
               </TerminalLine>
             ))}
             <TerminalLine kind="default">
-              <span className="dim">  ...e mais {data.certificates.length - 6}.</span>
+              <span className="dim">  {term.more.replace("{count}", data.certificates.length - 6)}</span>
             </TerminalLine>
           </>
         );
@@ -192,14 +199,14 @@ function Terminal() {
       case "ls": case "dir":
         output = (
           <TerminalLine kind="default">
-            <span className="kw">about</span>  <span className="kw">skills</span>  <span className="kw">projetos</span>  <span className="kw">exp</span>  <span className="kw">certs</span>  <span className="kw">contato</span>  <span className="kw">social</span>
+            <span className="kw">about</span>  <span className="kw">skills</span>  <span className="kw">projects</span>  <span className="kw">exp</span>  <span className="kw">certs</span>  <span className="kw">contact</span>  <span className="kw">social</span>
           </TerminalLine>
         );
         break;
 
       case "date":
       case "time":
-        output = <TerminalLine kind="default">{new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} BRT</TerminalLine>;
+        output = <TerminalLine kind="default">{new Date().toLocaleString(lang === "en" ? "en-US" : "pt-BR", { timeZone: "America/Sao_Paulo" })} BRT</TerminalLine>;
         break;
 
       case "sudo hire davi":
@@ -208,16 +215,16 @@ function Terminal() {
       case "hire-me":
         output = (
           <>
-            <TerminalLine kind="system">[sudo] permissão concedida.</TerminalLine>
+            <TerminalLine kind="system">{term.hireGranted}</TerminalLine>
             <TerminalLine kind="default">→ <span className="kw">{data.identity.email}</span></TerminalLine>
             <TerminalLine kind="default">→ <span className="kw">{data.identity.linkedin}</span></TerminalLine>
-            <TerminalLine kind="system">aguardando contato. :)</TerminalLine>
+            <TerminalLine kind="system">{term.waitingContact}</TerminalLine>
           </>
         );
         break;
 
       default:
-        output = <TerminalLine kind="error">comando não encontrado: '{cmd}'. tente 'help'.</TerminalLine>;
+        output = <TerminalLine kind="error">{term.notFound.replace("{cmd}", cmd)}</TerminalLine>;
     }
 
     setHistory((h) => [...h, { cmd, jsx: (
@@ -226,7 +233,7 @@ function Terminal() {
         <div style={{ paddingLeft: 14, paddingTop: 4 }}>{output}</div>
       </div>
     ) }]);
-  }, []);
+  }, [data, lang, term]);
 
   const onKey = (e) => {
     if (e.key === "Enter") {
@@ -257,7 +264,7 @@ function Terminal() {
       </div>
 
       <div className="terminal-hints">
-        {["help", "about", "skills", "projetos", "exp", "contato", "hire-me"].map((c) => (
+        {["help", "about", "skills", "projects", "exp", "contact", "hire-me"].map((c) => (
           <button key={c} className="terminal-hint" onClick={() => onHint(c)}>{c}</button>
         ))}
       </div>
@@ -276,7 +283,7 @@ function Terminal() {
           onKeyDown={onKey}
           spellCheck={false}
           autoComplete="off"
-          placeholder={bootDone ? "digite um comando..." : ""}
+          placeholder={bootDone ? term.placeholder : ""}
           aria-label="Terminal input"
         />
       </form>

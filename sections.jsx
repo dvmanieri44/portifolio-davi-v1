@@ -3,6 +3,23 @@
 
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
+function getCopy(lang) {
+  return window.getPortfolioCopy?.(lang) || window.PORTFOLIO_COPY.pt;
+}
+
+function getData(lang) {
+  return window.getPortfolioData?.(lang) || window.PORTFOLIO_DATA;
+}
+
+function renderParts(parts, keyPrefix = "part") {
+  return parts.map((part, index) => {
+    const content = part === "company" ? window.PORTFOLIO_DATA.identity.company : part;
+    return index % 2 === 1
+      ? <em key={`${keyPrefix}-${index}`}>{content}</em>
+      : <React.Fragment key={`${keyPrefix}-${index}`}>{content}</React.Fragment>;
+  });
+}
+
 // ─── Hooks ────────────────────────────────────────────────────
 
 function useReveal(threshold = 0.2) {
@@ -94,10 +111,11 @@ function CustomCursor() {
 
 // ─── Splash ───────────────────────────────────────────────────
 
-function Splash({ onDone }) {
+function Splash({ onDone, lang = "pt" }) {
   const [ready, setReady] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const data = window.PORTFOLIO_DATA;
+  const data = getData(lang);
+  const copy = getCopy(lang);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
@@ -112,11 +130,11 @@ function Splash({ onDone }) {
     <div className={`splash ${ready ? "is-ready" : ""} ${leaving ? "is-leaving" : ""}`}>
       <span className="splash-bar" />
       <div className="splash-title">
-        Portfólio de <em>{data.identity.nameDisplay}</em>
+        {copy.splashPrefix} <em>{data.identity.nameDisplay}</em>
       </div>
       <div className="splash-meta">
         <span>v2.0</span>
-        <span>· {data.identity.location.split('·')[0].trim()}</span>
+        <span>· {copy.splashLocation}</span>
         <span>· {new Date().getFullYear()}</span>
       </div>
       <div className="splash-progress">
@@ -130,6 +148,7 @@ function Splash({ onDone }) {
 
 function Nav({ activeSection, sections, onLang, lang, onTheme, theme }) {
   const [scrolled, setScrolled] = useState(false);
+  const copy = getCopy(lang);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -160,7 +179,7 @@ function Nav({ activeSection, sections, onLang, lang, onTheme, theme }) {
       <div className="nav-right">
         <span className="nav-status">
           <span className="nav-status-dot" />
-          ONLINE
+          {copy.navStatus}
         </span>
         <select value={lang} onChange={(e) => onLang(e.target.value)} aria-label="Language">
           <option value="pt">PT</option>
@@ -173,8 +192,9 @@ function Nav({ activeSection, sections, onLang, lang, onTheme, theme }) {
 
 // ─── Hero ────────────────────────────────────────────────────
 
-function Hero() {
-  const data = window.PORTFOLIO_DATA;
+function Hero({ lang = "pt" }) {
+  const data = getData(lang);
+  const copy = getCopy(lang);
   const clock = useClock();
   const [firstName = "", ...restName] = data.identity.name.split(" ");
 
@@ -183,7 +203,7 @@ function Hero() {
       <div className="hero-left">
         <div className="hero-eyebrow">
           <span className="hero-eyebrow-line" />
-          ENG. DE COMPUTAÇÃO · DESDE 2020
+          {copy.heroEyebrow}
         </div>
 
         <h1 className="hero-title">
@@ -199,16 +219,16 @@ function Hero() {
 
         <div className="hero-role">
           <span className="hero-role-pulse" />
-          ENGENHEIRO DE COMPUTAÇÃO · MOBILE · IA · FULL-STACK
+          {copy.heroRole}
         </div>
 
         <div className="hero-cta-row">
           <a href="#manifesto" className="btn">
-            <span>VER TRABALHO</span>
+            <span>{copy.heroPrimaryCta}</span>
             <span className="arrow">↓</span>
           </a>
           <a href="#contact" className="btn btn--ghost">
-            <span>FALAR COMIGO</span>
+            <span>{copy.heroSecondaryCta}</span>
             <span className="arrow">↗</span>
           </a>
         </div>
@@ -217,30 +237,36 @@ function Hero() {
       <div className="hero-right">
         <div className="hero-card">
           <div className="hero-card-head">
-            <span>// status</span>
+            <span>{copy.heroStatusLabel}</span>
             <span>{clock} BRT</span>
           </div>
           <div className="hero-card-body">
-            Programador na <span className="kw">{data.identity.company}</span>.<br/>
-            Técnico em desenvolvimento de sistemas pelo <span className="kw">SENAI</span>.<br/>
-            Estudante de Eng. da Computação pela <span className="kw">UNIVESP</span>.<br/>
-            Especialidade <span className="kw">mobile</span>, full-stack por consequência,
-            obcecado por <span className="kw">soluções com IA</span>.
+            {copy.heroCardLines.map((line, index) => (
+              <React.Fragment key={index}>
+                {line.map((part, partIndex) => {
+                  const content = part === "company" ? data.identity.company : part;
+                  return partIndex % 2 === 1
+                    ? <span key={partIndex} className="kw">{content}</span>
+                    : <React.Fragment key={partIndex}>{content}</React.Fragment>;
+                })}
+                {index < copy.heroCardLines.length - 1 && <br />}
+              </React.Fragment>
+            ))}
           </div>
         </div>
 
         <div className="hero-stats">
           <div className="hero-stat">
             <span className="hero-stat-num"><em>{data.summary.totalCerts}+</em></span>
-            <span className="hero-stat-label">Certificados</span>
+            <span className="hero-stat-label">{copy.heroStats.certificates}</span>
           </div>
           <div className="hero-stat">
             <span className="hero-stat-num">{data.projects.length}</span>
-            <span className="hero-stat-label">Projetos</span>
+            <span className="hero-stat-label">{copy.heroStats.projects}</span>
           </div>
           <div className="hero-stat">
-            <span className="hero-stat-num">{data.summary.yearsCoding}<em>y</em></span>
-            <span className="hero-stat-label">Codando</span>
+            <span className="hero-stat-num">{data.summary.yearsCoding}<em>{copy.heroStats.yearSuffix}</em></span>
+            <span className="hero-stat-label">{copy.heroStats.coding}</span>
           </div>
         </div>
       </div>
@@ -255,7 +281,8 @@ function Hero() {
 
 // ─── Manifesto + Terminal ────────────────────────────────────
 
-function Manifesto() {
+function Manifesto({ lang = "pt" }) {
+  const copy = getCopy(lang);
   const [ref, seen] = useReveal(0.15);
   return (
     <section id="manifesto" className="section" data-screen-label="02 Manifesto">
@@ -263,28 +290,20 @@ function Manifesto() {
         <div>
           <div className="section-label"><span className="accent">▸</span>{"  "}02 / MANIFESTO</div>
         </div>
-        <div className="section-meta">{"// quem está aí?"}</div>
+        <div className="section-meta">{copy.manifestoMeta}</div>
       </div>
 
       <div className="manifesto-wrap" ref={ref}>
         <div>
-          <div className={`manifesto-tag reveal ${seen ? "is-in" : ""}`}>Sobre</div>
+          <div className={`manifesto-tag reveal ${seen ? "is-in" : ""}`}>{copy.manifestoTag}</div>
           <div className={`manifesto reveal reveal-delay-1 ${seen ? "is-in" : ""}`}>
-            <p>
-              Construo software que <em>funciona em produção</em> — não no slide.
-            </p>
-            <p>
-              Mobile, backend, IA. Aprendi escutando hardware automotivo e quebrando coisas
-              até elas <em>quererem</em> obedecer.
-            </p>
-            <p>
-              Hoje meu foco é construir <em>ferramentas que poucos conseguem</em>: integrações
-              embarcadas, agentes de IA com objetivo claro e apps que respeitam o usuário.
-            </p>
+            {copy.manifestoBody.map((line, index) => (
+              <p key={index}>{renderParts(line, `manifesto-${index}`)}</p>
+            ))}
           </div>
         </div>
         <div className={`reveal reveal-delay-2 ${seen ? "is-in" : ""}`}>
-          <Terminal />
+          <Terminal lang={lang} />
         </div>
       </div>
     </section>
@@ -314,8 +333,9 @@ function MarqueeRow({ items, outline = false, dur = 50 }) {
   );
 }
 
-function Stack() {
-  const data = window.PORTFOLIO_DATA;
+function Stack({ lang = "pt" }) {
+  const data = getData(lang);
+  const copy = getCopy(lang);
 
   return (
     <section id="stack" className="stack-section section--full" data-screen-label="03 Stack">
@@ -324,16 +344,16 @@ function Stack() {
           <div>
             <div className="section-label"><span className="accent">▸</span>{"  "}03 / STACK</div>
           </div>
-          <div className="section-meta">{"// ferramentas + materiais"}</div>
+          <div className="section-meta">{copy.stackMeta}</div>
         </div>
       </div>
 
       <MarqueeRow
-        items={["MOBILE", "<em>BACKEND</em>", "FRONTEND", "DADOS", "<em>IA</em>", "EMBARCADOS"]}
+        items={copy.stackRows[0]}
         dur={48}
       />
       <MarqueeRow
-        items={["FLUTTER", "PYTHON", "REACT", "<em>LANGCHAIN</em>", "POSTGRES", "DART", "NODE.JS"]}
+        items={copy.stackRows[1]}
         outline
         dur={62}
       />
@@ -357,7 +377,7 @@ function Stack() {
 
 // ─── Projects ───────────────────────────────────────────────
 
-function ProjectCard({ p, adminMode, onEdit }) {
+function ProjectCard({ p, copy }) {
   const ref = useRef(null);
   const onMove = (e) => {
     if (!ref.current) return;
@@ -392,7 +412,7 @@ function ProjectCard({ p, adminMode, onEdit }) {
         <span className="project-card-index">{p.index}</span>
         <span className="project-card-status">
           <span className="project-status-dot" />
-          {p.status === "ongoing" ? "EM ANDAMENTO" : "ENTREGUE"} · {p.year}
+          {p.status === "ongoing" ? copy.projectStatusOngoing : copy.projectStatusDone} · {p.year}
         </span>
       </div>
 
@@ -409,40 +429,35 @@ function ProjectCard({ p, adminMode, onEdit }) {
           ))}
         </div>
         <a className="project-card-link" href="#" onClick={(e) => e.preventDefault()}>
-          <span>VER CASE</span>
+          <span>{copy.projectLink}</span>
           <span className="arrow">↗</span>
         </a>
       </div>
-      {adminMode && (
-        <div className="admin-inline-actions">
-          <button onClick={() => onEdit({ type: "projects", item: p })}>Editar</button>
-          <button onClick={() => window.PORTFOLIO_ADMIN.remove("projects", p.id)}>Excluir</button>
-        </div>
-      )}
     </article>
   );
 }
 
-function Projects({ adminMode, onEdit }) {
-  const data = window.PORTFOLIO_DATA;
+function Projects({ lang = "pt" }) {
+  const data = getData(lang);
+  const copy = getCopy(lang);
   const [ref, seen] = useReveal(0.05);
 
   return (
     <section id="projects" className="section" data-screen-label="04 Projects">
       <div className="section-head">
         <div>
-          <div className="section-label"><span className="accent">▸</span>{"  "}04 / PROJETOS</div>
+          <div className="section-label"><span className="accent">▸</span>{"  "}04 / {copy.sections.find((section) => section.id === "projects")?.label || "PROJECTS"}</div>
         </div>
         <h2 className="section-title">
-          Coisas que <em>existem</em><br/>porque eu fiz.
+          {copy.projectsTitle[0]}<em>{copy.projectsTitle[1]}</em><br/>{copy.projectsTitle[2]}
         </h2>
         <div className="section-meta">
-          {data.projects.length} projetos selecionados
+          {data.projects.length} {copy.projectsMetaSuffix}
         </div>
       </div>
 
       <div className={`projects-grid reveal ${seen ? "is-in" : ""}`} ref={ref}>
-        {data.projects.map((p) => <ProjectCard key={p.id} p={p} adminMode={adminMode} onEdit={onEdit} />)}
+        {data.projects.map((p) => <ProjectCard key={p.id} p={p} copy={copy} />)}
       </div>
     </section>
   );
@@ -450,36 +465,37 @@ function Projects({ adminMode, onEdit }) {
 
 // ─── Experience ─────────────────────────────────────────────
 
-function Experience({ adminMode, onEdit }) {
-  const data = window.PORTFOLIO_DATA;
+function Experience({ lang = "pt" }) {
+  const data = getData(lang);
+  const copy = getCopy(lang);
 
   return (
     <section id="experience" className="section" data-screen-label="05 Experience">
       <div className="section-head">
         <div>
-          <div className="section-label"><span className="accent">▸</span>{"  "}05 / EXPERIÊNCIA</div>
+          <div className="section-label"><span className="accent">▸</span>{"  "}05 / {copy.sections.find((section) => section.id === "experience")?.label || "EXP"}</div>
         </div>
-        <h2 className="section-title">Onde já <em>operei</em>.</h2>
-        <div className="section-meta">{"// linha do tempo"}</div>
+        <h2 className="section-title">{copy.experienceTitle[0]}<em>{copy.experienceTitle[1]}</em>{copy.experienceTitle[2]}</h2>
+        <div className="section-meta">{copy.experienceMeta}</div>
       </div>
 
       <div className="timeline">
         {data.experiences.map((e, i) => (
-          <ExperienceItem key={i} item={e} adminMode={adminMode} onEdit={onEdit} />
+          <ExperienceItem key={i} item={e} copy={copy} />
         ))}
       </div>
     </section>
   );
 }
 
-function ExperienceItem({ item, adminMode, onEdit }) {
+function ExperienceItem({ item, copy }) {
   const [ref, seen] = useReveal(0.1);
   return (
     <div ref={ref} className={`timeline-item ${item.current ? "is-current" : ""} reveal ${seen ? "is-in" : ""}`}>
       <span className="timeline-dot" />
       <div className="timeline-period">
-        <span>{item.period.start} — {item.period.end || "Presente"}</span>
-        {item.current && <span className="current-tag">ATUAL</span>}
+        <span>{item.period.start} — {item.period.end || copy.present}</span>
+        {item.current && <span className="current-tag">{copy.current}</span>}
       </div>
       <div className="timeline-row">
         <div>
@@ -491,29 +507,24 @@ function ExperienceItem({ item, adminMode, onEdit }) {
           <span className="timeline-company-meta">{item.meta}</span>
         </div>
       </div>
-      {adminMode && (
-        <div className="admin-inline-actions">
-          <button onClick={() => onEdit({ type: "experiences", item })}>Editar</button>
-          <button onClick={() => window.PORTFOLIO_ADMIN.remove("experiences", item.id)}>Excluir</button>
-        </div>
-      )}
     </div>
   );
 }
 
 // ─── Certificates & Education ───────────────────────────────
 
-function Certificates({ adminMode, onEdit }) {
-  const data = window.PORTFOLIO_DATA;
+function Certificates({ lang = "pt" }) {
+  const data = getData(lang);
+  const copy = getCopy(lang);
 
   return (
     <section id="education" className="section" data-screen-label="06 Education">
       <div className="section-head">
         <div>
-          <div className="section-label"><span className="accent">▸</span>{"  "}06 / FORMAÇÃO + CERTIFICADOS</div>
+          <div className="section-label"><span className="accent">▸</span>{"  "}{copy.educationLabel}</div>
         </div>
-        <h2 className="section-title">Sempre <em>aprendendo</em>.</h2>
-        <div className="section-meta">{data.summary.totalCerts}+ certificados</div>
+        <h2 className="section-title">{copy.educationTitle[0]}<em>{copy.educationTitle[1]}</em>{copy.educationTitle[2]}</h2>
+        <div className="section-meta">{data.summary.totalCerts}{copy.educationMetaSuffix}</div>
       </div>
 
       <div className="certs-wrap">
@@ -522,25 +533,19 @@ function Certificates({ adminMode, onEdit }) {
             {data.education.map((e, i) => (
               <div key={i} className={`edu-card ${e.current ? "is-current" : ""}`}>
                 <div className="edu-kind">
-                  {e.kind === "graduation" ? "GRADUAÇÃO" : "TÉCNICO"}
-                  {e.current ? " · EM CURSO" : ""}
+                  {e.kind === "graduation" ? copy.graduation : copy.technical}
+                  {e.current ? ` · ${copy.inProgress}` : ""}
                 </div>
                 <h3 className="edu-title">{e.title}</h3>
                 <div className="edu-org">{e.org}</div>
                 <div className="edu-period">{e.period}</div>
-                {adminMode && (
-                  <div className="admin-inline-actions">
-                    <button onClick={() => onEdit({ type: "certificates", item: e })}>Editar</button>
-                    <button onClick={() => window.PORTFOLIO_ADMIN.remove("certificates", e.id)}>Excluir</button>
-                  </div>
-                )}
               </div>
             ))}
           </div>
 
           <div className="certs-summary">
             <span className="certs-summary-big">{data.summary.totalCerts}+</span>
-            <span>Certificados<br/>em tecnologia</span>
+            <span>{copy.certificatesSummary[0]}<br/>{copy.certificatesSummary[1]}</span>
           </div>
         </div>
 
@@ -551,12 +556,6 @@ function Certificates({ adminMode, onEdit }) {
               <span className="cert-title">{c.title}</span>
               <span className="cert-org">{c.org}</span>
               <span className="cert-year">{c.year}</span>
-              {adminMode && (
-                <span className="admin-inline-actions">
-                  <button onClick={() => onEdit({ type: "certificates", item: c })}>Editar</button>
-                  <button onClick={() => window.PORTFOLIO_ADMIN.remove("certificates", c.id)}>Excluir</button>
-                </span>
-              )}
             </div>
           ))}
         </div>
@@ -567,11 +566,16 @@ function Certificates({ adminMode, onEdit }) {
 
 // ─── Contact ─────────────────────────────────────────────────
 
-function Contact() {
-  const data = window.PORTFOLIO_DATA;
+function Contact({ lang = "pt" }) {
+  const data = getData(lang);
+  const copy = getCopy(lang);
+  const youtube = data.identity.youtube ?? {
+    label: "www.youtube.com/@Code-Club-y8t",
+    href: "https://www.youtube.com/@Code-Club-y8t",
+  };
   const [copied, setCopied] = useState(null);
 
-  const copy = (val, label) => {
+  const copyToClipboard = (val, label) => {
     navigator.clipboard?.writeText(val).then(() => {
       setCopied(label);
       setTimeout(() => setCopied(null), 1400);
@@ -582,19 +586,18 @@ function Contact() {
     <section id="contact" className="contact-section" data-screen-label="07 Contact">
       <div className="section-head">
         <div>
-          <div className="section-label"><span className="accent">▸</span>{"  "}07 / CONTATO</div>
+          <div className="section-label"><span className="accent">▸</span>{"  "}07 / {copy.sections.find((section) => section.id === "contact")?.label || "CONTACT"}</div>
         </div>
-        <div className="section-meta">{"// disponível pra projetos"}</div>
+        <div className="section-meta">{copy.contactMeta}</div>
       </div>
 
       <h2 className="contact-title">
-        Bora <em>construir</em><br/>algo<span className="arrow"> ↗</span>
+        {copy.contactTitle[0]}<em>{copy.contactTitle[1]}</em><br/>{copy.contactTitle[2]}<span className="arrow"> ↗</span>
       </h2>
 
       <div className="contact-grid">
         <p className="contact-lead">
-          Estou aberto a <em>oportunidades</em> em mobile, IA aplicada e backend.
-          Se você está construindo algo difícil — me chama.
+          {copy.contactLead[0]}<em>{copy.contactLead[1]}</em>{copy.contactLead[2]}
         </p>
 
         <div className="contact-list">
@@ -602,10 +605,10 @@ function Contact() {
             <span className="contact-row-label">EMAIL</span>
             <span className="contact-row-value">{data.identity.email}<span className="arrow">↗</span></span>
           </a>
-          <button className="contact-row" onClick={() => copy(data.identity.phone, "phone")}>
-            <span className="contact-row-label">TELEFONE</span>
+          <button className="contact-row" onClick={() => copyToClipboard(data.identity.phone, "phone")}>
+            <span className="contact-row-label">{copy.phoneLabel}</span>
             <span className="contact-row-value">
-              {copied === "phone" ? "COPIADO!" : data.identity.phone}
+              {copied === "phone" ? copy.copied : data.identity.phone}
               <span className="arrow">⎘</span>
             </span>
           </button>
@@ -617,6 +620,10 @@ function Contact() {
             <span className="contact-row-label">GITHUB</span>
             <span className="contact-row-value">{data.identity.github}<span className="arrow">↗</span></span>
           </a>
+          <a className="contact-row" href={youtube.href} target="_blank" rel="noopener">
+            <span className="contact-row-label">YOUTUBE</span>
+            <span className="contact-row-value">{youtube.label}<span className="arrow">↗</span></span>
+          </a>
         </div>
       </div>
     </section>
@@ -625,13 +632,14 @@ function Contact() {
 
 // ─── Footer ─────────────────────────────────────────────────
 
-function Footer() {
+function Footer({ lang = "pt" }) {
+  const copy = getCopy(lang);
   const clock = useClock();
   return (
     <footer className="footer">
       <span>DAVI MANIERI © {new Date().getFullYear()}</span>
-      <span>São Carlos · SP · BR</span>
-      <span>LOCAL TIME · {clock}</span>
+      <span>{copy.footerLocation}</span>
+      <span>{copy.footerTime} · {clock}</span>
     </footer>
   );
 }

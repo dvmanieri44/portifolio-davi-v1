@@ -42,15 +42,7 @@ const ACCENT_OPTIONS = [
   "#fbbf24", // amber
 ];
 
-const SECTIONS = [
-  { id: "hero",       label: "INÍCIO" },
-  { id: "manifesto",  label: "MANIFESTO" },
-  { id: "stack",      label: "STACK" },
-  { id: "projects",   label: "PROJETOS" },
-  { id: "experience", label: "EXP" },
-  { id: "education",  label: "EDUCAÇÃO" },
-  { id: "contact",    label: "CONTATO" },
-];
+const SECTION_IDS = ["hero", "manifesto", "stack", "projects", "experience", "education", "contact"];
 
 function useActiveSection(ids) {
   const [active, setActive] = useState(ids[0]);
@@ -73,11 +65,21 @@ function useActiveSection(ids) {
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [splashGone, setSplashGone] = useState(false);
-  const [lang, setLang] = useState("pt");
+  const [lang, setLang] = useState(() => {
+    const saved = window.localStorage?.getItem("portfolio-lang");
+    return saved === "en" ? "en" : "pt";
+  });
   const [dataVersion, setDataVersion] = useState(0);
-  const [adminMode, setAdminMode] = useState(false);
-  const [editor, setEditor] = useState(null);
-  const active = useActiveSection(SECTIONS.map((s) => s.id));
+  const [adminOpen, setAdminOpen] = useState(false);
+  const active = useActiveSection(SECTION_IDS);
+  const copy = window.getPortfolioCopy?.(lang) || window.PORTFOLIO_COPY.pt;
+  const sections = copy.sections || SECTION_IDS.map((id) => ({ id, label: id.toUpperCase() }));
+
+  useEffect(() => {
+    document.documentElement.lang = lang === "en" ? "en" : "pt-BR";
+    document.title = copy.documentTitle || document.title;
+    window.localStorage?.setItem("portfolio-lang", lang);
+  }, [lang, copy.documentTitle]);
 
   useEffect(() => {
     const rerender = () => setDataVersion((value) => value + 1);
@@ -93,13 +95,13 @@ function App() {
       clicks += 1;
       if (clicks < 5) return;
       clicks = 0;
-      const answer = window.prompt("Digite a senha");
-      if (answer === "2040") setAdminMode(true);
-      else if (answer !== null) window.alert("Senha incorreta.");
+      const answer = window.prompt(copy.adminPromptPassword);
+      if (answer === "2040") setAdminOpen(true);
+      else if (answer !== null) window.alert(copy.adminWrongPassword);
     };
     footer.addEventListener("click", onClick);
     return () => footer.removeEventListener("click", onClick);
-  }, [dataVersion]);
+  }, [dataVersion, copy.adminPromptPassword, copy.adminWrongPassword]);
 
   // Apply token CSS vars from tweaks
   useEffect(() => {
@@ -144,7 +146,7 @@ function App() {
 
   return (
     <>
-      {!splashGone && <Splash onDone={() => setSplashGone(true)} />}
+      {!splashGone && <Splash lang={lang} onDone={() => setSplashGone(true)} />}
       <span className="fx-grain" />
       <span className="fx-scan" />
       {t.cursorOn && <CustomCursor />}
@@ -152,26 +154,25 @@ function App() {
 
       <div className="app">
         <Nav
-          sections={SECTIONS}
+          sections={sections}
           activeSection={active}
           lang={lang}
           onLang={setLang}
         />
-        <SectionRail sections={SECTIONS} active={active} />
+        <SectionRail sections={sections} active={active} />
 
         <main>
-          <Hero />
-          <Manifesto />
-          <Stack />
-          <Projects adminMode={adminMode} onEdit={setEditor} />
-          <Experience adminMode={adminMode} onEdit={setEditor} />
-          <Certificates adminMode={adminMode} onEdit={setEditor} />
-          <Contact />
+          <Hero lang={lang} />
+          <Manifesto lang={lang} />
+          <Stack lang={lang} />
+          <Projects lang={lang} />
+          <Experience lang={lang} />
+          <Certificates lang={lang} />
+          <Contact lang={lang} />
         </main>
 
-        <Footer />
-        {adminMode && <AdminDock onCreate={setEditor} />}
-        {editor && <AdminEditor editor={editor} onClose={() => setEditor(null)} />}
+        <Footer lang={lang} />
+        {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
 
         <TweaksPanel title="Tweaks">
           <TweakSection label="Identidade" />
@@ -223,29 +224,112 @@ function App() {
   );
 }
 
-function AdminDock({ onCreate }) {
-  return (
-    <div className="admin-dock">
-      <span>ADMIN</span>
-      <button onClick={() => onCreate({ type: "projects" })}>+ projeto</button>
-      <button onClick={() => onCreate({ type: "experiences" })}>+ experiência</button>
-      <button onClick={() => onCreate({ type: "certificates" })}>+ certificado</button>
-    </div>
-  );
-}
-
 function toInputDate(value) {
   if (!value) return "";
   const date = typeof value.toDate === "function" ? value.toDate() : new Date(value);
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }
 
-function AdminEditor({ editor, onClose }) {
-  const item = editor.item || {};
-  const [type, setType] = useState(editor.type);
+const ADMIN_TABS = [
+  { id: "projects", label: "Projetos" },
+  { id: "experiences", label: "Experiências" },
+  { id: "certificates", label: "Certificados" },
+  { id: "education", label: "Formação" },
+];
+
+function getAdminItems(type, data) {
+  if (type === "projects") return data.projects;
+  if (type === "experiences") return data.experiences;
+  if (type === "education") return data.education;
+  return data.certificates;
+}
+
+function getAdminStorageType(type) {
+  return type === "education" ? "certificates" : type;
+}
+
+function getAdminItemTitle(type, item) {
+  if (type === "projects") return item.title || item.name || "Projeto sem título";
+  if (type === "experiences") return item.cargo || item.role || "Experiência sem cargo";
+  return item.title || "Item sem título";
+}
+
+function getAdminItemMeta(type, item) {
+  if (type === "projects") return item.year || "";
+  if (type === "experiences") return item.empresa || item.company || "";
+  return item.instituicao || item.org || "";
+}
+
+function buildAdminPayload(type, form) {
+  if (type === "projects") {
+    return {
+      title: String(form.get("title") || ""),
+      descricao: String(form.get("descricao") || ""),
+      url: String(form.get("url") || ""),
+      stack: String(form.get("stack") || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+      dataInicio: form.get("dataInicio") ? new Date(String(form.get("dataInicio"))) : null,
+      dataFinal: form.get("dataFinal") ? new Date(String(form.get("dataFinal"))) : null,
+      finalizado: form.get("finalizado") === "on",
+    };
+  }
+
+  if (type === "experiences") {
+    const current = form.get("trabalhoAtual") === "on";
+    return {
+      empresa: String(form.get("empresa") || ""),
+      cargo: String(form.get("cargo") || ""),
+      meta: String(form.get("meta") || ""),
+      summary: String(form.get("summary") || ""),
+      dataEntrada: form.get("dataEntrada") ? new Date(String(form.get("dataEntrada"))) : null,
+      dataSaida: current || !form.get("dataSaida") ? null : new Date(String(form.get("dataSaida"))),
+      trabalhoAtual: current,
+    };
+  }
+
+  const current = form.get("atual") === "on";
+  return {
+    title: String(form.get("title") || ""),
+    instituicao: String(form.get("instituicao") || ""),
+    logoUrl: String(form.get("logoUrl") || ""),
+    dataInicio: form.get("dataInicio") ? new Date(String(form.get("dataInicio"))) : null,
+    dataFinal: current || !form.get("dataFinal") ? null : new Date(String(form.get("dataFinal"))),
+    atual: current,
+    formacao: type === "education",
+  };
+}
+
+function AdminPanel({ onClose }) {
+  const data = window.PORTFOLIO_DATA;
+  const [type, setType] = useState("projects");
+  const [selectedId, setSelectedId] = useState(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
-  const isEditing = !!item.id;
+  const items = getAdminItems(type, data).filter((entry) => entry.id);
+  const item = items.find((entry) => entry.id === selectedId) || null;
+  const isEditing = !!item;
+  const [currentFlag, setCurrentFlag] = useState(false);
+
+  useEffect(() => {
+    setSelectedId(null);
+    setStatus("");
+  }, [type]);
+
+  useEffect(() => {
+    if (type === "experiences") setCurrentFlag(!!item?.trabalhoAtual);
+    else if (type === "certificates" || type === "education") setCurrentFlag(!!item?.atual);
+    else setCurrentFlag(false);
+  }, [type, item?.id]);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -253,40 +337,12 @@ function AdminEditor({ editor, onClose }) {
     setBusy(true);
     setStatus("Salvando...");
     try {
-      let payload;
-      if (type === "projects") {
-        payload = {
-          title: String(form.get("title") || ""),
-          descricao: String(form.get("descricao") || ""),
-          url: String(form.get("url") || ""),
-          dataInicio: form.get("dataInicio") ? new Date(String(form.get("dataInicio"))) : null,
-          dataFinal: form.get("dataFinal") ? new Date(String(form.get("dataFinal"))) : null,
-          finalizado: form.get("finalizado") === "on",
-        };
-      } else if (type === "experiences") {
-        const current = form.get("trabalhoAtual") === "on";
-        payload = {
-          empresa: String(form.get("empresa") || ""),
-          cargo: String(form.get("cargo") || ""),
-          dataEntrada: form.get("dataEntrada") ? new Date(String(form.get("dataEntrada"))) : null,
-          dataSaida: current || !form.get("dataSaida") ? null : new Date(String(form.get("dataSaida"))),
-          trabalhoAtual: current,
-        };
-      } else {
-        const current = form.get("atual") === "on";
-        payload = {
-          title: String(form.get("certTitle") || ""),
-          instituicao: String(form.get("instituicao") || ""),
-          logoUrl: String(form.get("logoUrl") || ""),
-          dataInicio: form.get("certInicio") ? new Date(String(form.get("certInicio"))) : null,
-          dataFinal: current || !form.get("certFim") ? null : new Date(String(form.get("certFim"))),
-          atual: current,
-          formacao: form.get("formacao") === "on",
-        };
-      }
-      if (isEditing) await window.PORTFOLIO_ADMIN.update(type, item.id, payload);
-      else await window.PORTFOLIO_ADMIN.create(type, payload);
-      onClose();
+      const payload = buildAdminPayload(type, form);
+      const storageType = getAdminStorageType(type);
+      if (isEditing) await window.PORTFOLIO_ADMIN.update(storageType, item.id, payload);
+      else await window.PORTFOLIO_ADMIN.create(storageType, payload);
+      setStatus(isEditing ? "Atualizado." : "Criado.");
+      setSelectedId(null);
     } catch (error) {
       console.error(error);
       setStatus("Erro ao salvar.");
@@ -295,65 +351,156 @@ function AdminEditor({ editor, onClose }) {
     }
   };
 
+  const remove = async (entry) => {
+    if (!window.confirm(`Excluir "${getAdminItemTitle(type, entry)}"?`)) return;
+    setBusy(true);
+    setStatus("Excluindo...");
+    try {
+      await window.PORTFOLIO_ADMIN.remove(getAdminStorageType(type), entry.id);
+      if (selectedId === entry.id) setSelectedId(null);
+      setStatus("Excluído.");
+    } catch (error) {
+      console.error(error);
+      setStatus("Erro ao excluir.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-    <div className="admin-modal" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <form className="admin-card" onSubmit={submit}>
-        <div className="admin-card-head">
-          <strong>{isEditing ? "Editar" : "Novo"}</strong>
-          {!isEditing && (
-            <select value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="projects">Projeto</option>
-              <option value="experiences">Experiência</option>
-              <option value="certificates">Certificado</option>
-            </select>
-          )}
+    <div className="admin-modal admin-panel-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <section className="admin-card admin-panel">
+        <header className="admin-panel-head">
+          <div>
+            <strong>Configurar portfólio</strong>
+            <span>Gerencie o conteúdo que aparece no site.</span>
+          </div>
+          <button type="button" onClick={onClose}>Fechar</button>
+        </header>
+
+        <nav className="admin-tabs" aria-label="Seções do painel">
+          {ADMIN_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={type === tab.id ? "is-active" : ""}
+              onClick={() => setType(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="admin-panel-body">
+          <aside className="admin-list">
+            <div className="admin-list-head">
+              <strong>{ADMIN_TABS.find((tab) => tab.id === type)?.label}</strong>
+              <button type="button" onClick={() => setSelectedId(null)}>+ novo</button>
+            </div>
+            <div className="admin-list-items">
+              {items.length === 0 && <p>Nenhum item cadastrado.</p>}
+              {items.map((entry) => (
+                <div key={entry.id} className={`admin-list-item ${selectedId === entry.id ? "is-active" : ""}`}>
+                  <button type="button" onClick={() => setSelectedId(entry.id)}>
+                    <strong>{getAdminItemTitle(type, entry)}</strong>
+                    <span>{getAdminItemMeta(type, entry)}</span>
+                  </button>
+                  <button type="button" onClick={() => remove(entry)} disabled={busy}>Excluir</button>
+                </div>
+              ))}
+            </div>
+          </aside>
+
+          <form
+            key={`${type}:${item?.id || "new"}`}
+            className="admin-form"
+            onSubmit={submit}
+          >
+            <div className="admin-form-head">
+              <strong>{isEditing ? "Editar" : "Novo"}</strong>
+              {status && <small>{status}</small>}
+            </div>
+
+            {type === "projects" && (
+              <>
+                <input name="title" placeholder="Título" defaultValue={item?.title || ""} required />
+                <textarea name="descricao" placeholder="Descrição" defaultValue={item?.descricao || ""} />
+                <input name="url" placeholder="URL do projeto" defaultValue={item?.url || ""} />
+                <input
+                  name="stack"
+                  placeholder="Stack separada por vírgulas"
+                  defaultValue={(item?.stack || []).join(", ")}
+                />
+                <div className="admin-form-row">
+                  <input name="dataInicio" type="date" defaultValue={toInputDate(item?.dataInicio)} />
+                  <input name="dataFinal" type="date" defaultValue={toInputDate(item?.dataFinal)} />
+                </div>
+                <label><input name="finalizado" type="checkbox" defaultChecked={!!item?.finalizado} /> Finalizado</label>
+              </>
+            )}
+
+            {type === "experiences" && (
+              <>
+                <input name="empresa" placeholder="Empresa" defaultValue={item?.empresa || ""} required />
+                <input name="cargo" placeholder="Cargo" defaultValue={item?.cargo || ""} required />
+                <input name="meta" placeholder="Meta / local / tipo" defaultValue={item?.meta || ""} />
+                <textarea name="summary" placeholder="Resumo" defaultValue={item?.summary || ""} />
+                <div className="admin-form-row">
+                  <input name="dataEntrada" type="date" defaultValue={toInputDate(item?.dataEntrada)} required />
+                  <input
+                    name="dataSaida"
+                    type="date"
+                    defaultValue={toInputDate(item?.dataSaida)}
+                    disabled={currentFlag}
+                  />
+                </div>
+                <label>
+                  <input
+                    name="trabalhoAtual"
+                    type="checkbox"
+                    checked={currentFlag}
+                    onChange={(e) => setCurrentFlag(e.target.checked)}
+                  />{" "}
+                  Trabalho atual
+                </label>
+              </>
+            )}
+
+            {(type === "certificates" || type === "education") && (
+              <>
+                <input name="title" placeholder="Título" defaultValue={item?.title || ""} required />
+                <input name="instituicao" placeholder="Instituição" defaultValue={item?.instituicao || ""} required />
+                <input name="logoUrl" placeholder="URL do logo" defaultValue={item?.logoUrl || ""} />
+                <div className="admin-form-row">
+                  <input name="dataInicio" type="date" defaultValue={toInputDate(item?.dataInicio)} required />
+                  <input
+                    name="dataFinal"
+                    type="date"
+                    defaultValue={toInputDate(item?.dataFinal)}
+                    disabled={currentFlag}
+                  />
+                </div>
+                <label>
+                  <input
+                    name="atual"
+                    type="checkbox"
+                    checked={currentFlag}
+                    onChange={(e) => setCurrentFlag(e.target.checked)}
+                  />{" "}
+                  Em andamento
+                </label>
+              </>
+            )}
+
+            <div className="admin-form-actions">
+              {isEditing && (
+                <button type="button" onClick={() => setSelectedId(null)}>Novo item</button>
+              )}
+              <button disabled={busy} type="submit">{busy ? "Salvando..." : "Salvar"}</button>
+            </div>
+          </form>
         </div>
-
-        {type === "projects" && (
-          <>
-            <input name="title" placeholder="Título" defaultValue={item.title || ""} required />
-            <textarea name="descricao" placeholder="Descrição" defaultValue={item.descricao || ""} />
-            <input name="url" placeholder="URL" defaultValue={item.url || ""} />
-            <div className="admin-row">
-              <input name="dataInicio" type="date" defaultValue={toInputDate(item.dataInicio)} />
-              <input name="dataFinal" type="date" defaultValue={toInputDate(item.dataFinal)} />
-            </div>
-            <label><input name="finalizado" type="checkbox" defaultChecked={!!item.finalizado} /> Finalizado</label>
-          </>
-        )}
-
-        {type === "experiences" && (
-          <>
-            <input name="empresa" placeholder="Empresa" defaultValue={item.empresa || ""} required />
-            <input name="cargo" placeholder="Cargo" defaultValue={item.cargo || ""} required />
-            <div className="admin-row">
-              <input name="dataEntrada" type="date" defaultValue={toInputDate(item.dataEntrada)} required />
-              <input name="dataSaida" type="date" defaultValue={toInputDate(item.dataSaida)} />
-            </div>
-            <label><input name="trabalhoAtual" type="checkbox" defaultChecked={!!item.trabalhoAtual} /> Trabalho atual</label>
-          </>
-        )}
-
-        {type === "certificates" && (
-          <>
-            <input name="certTitle" placeholder="Título" defaultValue={item.title || ""} required />
-            <input name="instituicao" placeholder="Instituição" defaultValue={item.instituicao || ""} required />
-            <input name="logoUrl" placeholder="URL do logo" defaultValue={item.logoUrl || ""} />
-            <div className="admin-row">
-              <input name="certInicio" type="date" defaultValue={toInputDate(item.dataInicio)} required />
-              <input name="certFim" type="date" defaultValue={toInputDate(item.dataFinal)} />
-            </div>
-            <label><input name="atual" type="checkbox" defaultChecked={!!item.atual} /> Em andamento</label>
-            <label><input name="formacao" type="checkbox" defaultChecked={!!item.formacao} /> Formação</label>
-          </>
-        )}
-
-        <div className="admin-actions">
-          <button type="button" onClick={onClose}>Cancelar</button>
-          <button disabled={busy} type="submit">{busy ? "Salvando..." : "Salvar"}</button>
-        </div>
-        {status && <small>{status}</small>}
-      </form>
+      </section>
     </div>
   );
 }
