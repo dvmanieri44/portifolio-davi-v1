@@ -232,6 +232,7 @@ function toInputDate(value) {
 }
 
 const ADMIN_TABS = [
+  { id: "profile", label: "YouTube" },
   { id: "projects", label: "Projetos" },
   { id: "experiences", label: "Experiências" },
   { id: "certificates", label: "Certificados" },
@@ -239,6 +240,7 @@ const ADMIN_TABS = [
 ];
 
 function getAdminItems(type, data) {
+  if (type === "profile") return [];
   if (type === "projects") return data.projects;
   if (type === "experiences") return data.experiences;
   if (type === "education") return data.education;
@@ -262,6 +264,19 @@ function getAdminItemMeta(type, item) {
 }
 
 function buildAdminPayload(type, form) {
+  if (type === "profile") {
+    return {
+      youtube: {
+        label: String(form.get("youtubeLabel") || ""),
+        href: String(form.get("youtubeHref") || ""),
+        featuredVideo: {
+          title: String(form.get("youtubeVideoTitle") || ""),
+          url: String(form.get("youtubeVideoUrl") || ""),
+        },
+      },
+    };
+  }
+
   if (type === "projects") {
     return {
       title: String(form.get("title") || ""),
@@ -311,6 +326,9 @@ function AdminPanel({ onClose }) {
   const items = getAdminItems(type, data).filter((entry) => entry.id);
   const item = items.find((entry) => entry.id === selectedId) || null;
   const isEditing = !!item;
+  const isProfile = type === "profile";
+  const youtube = data.identity.youtube || {};
+  const featuredVideo = youtube.featuredVideo || {};
   const [currentFlag, setCurrentFlag] = useState(false);
 
   useEffect(() => {
@@ -339,10 +357,14 @@ function AdminPanel({ onClose }) {
     setStatus("Salvando...");
     try {
       const payload = buildAdminPayload(type, form);
-      const storageType = getAdminStorageType(type);
-      if (isEditing) await window.PORTFOLIO_ADMIN.update(storageType, item.id, payload);
-      else await window.PORTFOLIO_ADMIN.create(storageType, payload);
-      setStatus(isEditing ? "Atualizado." : "Criado.");
+      if (isProfile) {
+        await window.PORTFOLIO_ADMIN.saveProfile(payload);
+      } else {
+        const storageType = getAdminStorageType(type);
+        if (isEditing) await window.PORTFOLIO_ADMIN.update(storageType, item.id, payload);
+        else await window.PORTFOLIO_ADMIN.create(storageType, payload);
+      }
+      setStatus(isProfile || isEditing ? "Atualizado." : "Criado.");
       setSelectedId(null);
     } catch (error) {
       console.error(error);
@@ -396,10 +418,11 @@ function AdminPanel({ onClose }) {
           <aside className="admin-list">
             <div className="admin-list-head">
               <strong>{ADMIN_TABS.find((tab) => tab.id === type)?.label}</strong>
-              <button type="button" onClick={() => setSelectedId(null)}>+ novo</button>
+              {!isProfile && <button type="button" onClick={() => setSelectedId(null)}>+ novo</button>}
             </div>
             <div className="admin-list-items">
-              {items.length === 0 && <p>Nenhum item cadastrado.</p>}
+              {isProfile && <p>Configuracao unica do canal e do video em destaque.</p>}
+              {!isProfile && items.length === 0 && <p>Nenhum item cadastrado.</p>}
               {items.map((entry) => (
                 <div key={entry.id} className={`admin-list-item ${selectedId === entry.id ? "is-active" : ""}`}>
                   <button type="button" onClick={() => setSelectedId(entry.id)}>
@@ -418,9 +441,18 @@ function AdminPanel({ onClose }) {
             onSubmit={submit}
           >
             <div className="admin-form-head">
-              <strong>{isEditing ? "Editar" : "Novo"}</strong>
+              <strong>{isProfile ? "Canal e video" : isEditing ? "Editar" : "Novo"}</strong>
               {status && <small>{status}</small>}
             </div>
+
+            {isProfile && (
+              <>
+                <input name="youtubeLabel" placeholder="Label do canal" defaultValue={youtube.label || ""} required />
+                <input name="youtubeHref" placeholder="URL do canal" defaultValue={youtube.href || ""} required />
+                <input name="youtubeVideoTitle" placeholder="Titulo do video" defaultValue={featuredVideo.title || ""} required />
+                <input name="youtubeVideoUrl" placeholder="URL do video do YouTube" defaultValue={featuredVideo.url || ""} required />
+              </>
+            )}
 
             {type === "projects" && (
               <>
@@ -494,7 +526,7 @@ function AdminPanel({ onClose }) {
             )}
 
             <div className="admin-form-actions">
-              {isEditing && (
+              {isEditing && !isProfile && (
                 <button type="button" onClick={() => setSelectedId(null)}>Novo item</button>
               )}
               <button disabled={busy} type="submit">{busy ? "Salvando..." : "Salvar"}</button>

@@ -4,7 +4,9 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
+  setDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
@@ -83,11 +85,35 @@ async function fetchCollection(name) {
   return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
 }
 
+async function fetchProfileSettings() {
+  try {
+    const snapshot = await getDoc(doc(db, "settings", "profile"));
+    return snapshot.exists() ? snapshot.data() : {};
+  } catch (error) {
+    console.warn("Falha ao carregar settings/profile.", error);
+    return {};
+  }
+}
+
+function mergeYoutubeSettings(profile) {
+  const local = base.identity.youtube || {};
+  const remote = profile.youtube || {};
+  return {
+    ...local,
+    ...remote,
+    featuredVideo: {
+      ...(local.featuredVideo || {}),
+      ...(remote.featuredVideo || {}),
+    },
+  };
+}
+
 async function refreshPortfolioData() {
-  const [projects, certificates, experiences] = await Promise.all([
+  const [projects, certificates, experiences, profile] = await Promise.all([
     fetchCollection("projects"),
     fetchCollection("certificates"),
     fetchCollection("experiences"),
+    fetchProfileSettings(),
   ]);
 
   const orderedProjects = projects
@@ -107,6 +133,11 @@ async function refreshPortfolioData() {
 
   window.PORTFOLIO_DATA = {
     ...base,
+    identity: {
+      ...base.identity,
+      ...(profile.identity || {}),
+      youtube: mergeYoutubeSettings(profile),
+    },
     projects: orderedProjects,
     experiences: orderedExperiences,
     education,
@@ -132,6 +163,10 @@ window.PORTFOLIO_ADMIN = {
   },
   async remove(type, id) {
     await deleteDoc(doc(db, type, id));
+    await refreshPortfolioData();
+  },
+  async saveProfile(payload) {
+    await setDoc(doc(db, "settings", "profile"), payload, { merge: true });
     await refreshPortfolioData();
   },
 };
