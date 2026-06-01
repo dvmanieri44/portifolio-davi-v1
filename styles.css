@@ -1198,6 +1198,87 @@ button {
   .projects-grid { grid-template-columns: 1fr; }
 }
 
+/* YouTube */
+.youtube-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+
+.youtube-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.youtube-lead {
+  margin-top: 0;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 46px);
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.youtube-lead em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.youtube-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.youtube-player {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.28);
+}
+
+.youtube-player::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 0%, var(--accent-soft), transparent 58%);
+  pointer-events: none;
+}
+
+.youtube-player iframe {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.youtube-fallback {
+  position: relative;
+  height: 100%;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.youtube-fallback strong {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 400;
+}
+
+@media (max-width: 900px) {
+  .youtube-grid { grid-template-columns: 1fr; }
+}
+
 .project-card {
   position: relative;
   background: var(--bg);

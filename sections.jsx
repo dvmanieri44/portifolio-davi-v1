@@ -20,6 +20,28 @@ function renderParts(parts, keyPrefix = "part") {
   });
 }
 
+function getYouTubeEmbedUrl(url) {
+  try {
+    const parsed = new URL(url);
+    let id = "";
+
+    if (parsed.hostname.includes("youtu.be")) {
+      id = parsed.pathname.slice(1);
+    } else if (parsed.pathname.startsWith("/shorts/")) {
+      id = parsed.pathname.split("/")[2];
+    } else if (parsed.pathname.startsWith("/embed/")) {
+      id = parsed.pathname.split("/")[2];
+    } else {
+      id = parsed.searchParams.get("v") || "";
+    }
+
+    id = id.split(/[?&/]/)[0];
+    return id ? `https://www.youtube.com/embed/${id}` : "";
+  } catch {
+    return "";
+  }
+}
+
 // ─── Hooks ────────────────────────────────────────────────────
 
 function useReveal(threshold = 0.2) {
@@ -465,15 +487,77 @@ function Projects({ lang = "pt" }) {
 
 // ─── Experience ─────────────────────────────────────────────
 
+function YouTubeSection({ lang = "pt" }) {
+  const data = getData(lang);
+  const copy = getCopy(lang);
+  const [ref, seen] = useReveal(0.08);
+  const youtube = data.identity.youtube || {};
+  const featuredVideo = youtube.featuredVideo || {};
+  const embedUrl = getYouTubeEmbedUrl(featuredVideo.url);
+  const videoTitle = featuredVideo.title || "Video em destaque";
+
+  return (
+    <section id="youtube" className="section youtube-section" data-screen-label="05 YouTube">
+      <div className="section-head">
+        <div>
+          <div className="section-label"><span className="accent">{"\u25b8"}</span>{"  "}05 / {copy.sections.find((section) => section.id === "youtube")?.label || "YOUTUBE"}</div>
+        </div>
+        <h2 className="section-title">
+          {copy.youtubeTitle[0]}<em>{copy.youtubeTitle[1]}</em><br/>{copy.youtubeTitle[2]}
+        </h2>
+        <div className="section-meta">{copy.youtubeMeta}</div>
+      </div>
+
+      <div ref={ref} className={`youtube-grid reveal ${seen ? "is-in" : ""}`}>
+        <div className="youtube-copy">
+          <p className="youtube-lead">
+            {copy.youtubeLead[0]}<em>{copy.youtubeLead[1]}</em>{copy.youtubeLead[2]}
+          </p>
+          <div className="youtube-actions">
+            <a className="btn" href={youtube.href} target="_blank" rel="noopener">
+              <span>{copy.youtubeChannelCta}</span>
+              <span className="arrow">{"\u2197"}</span>
+            </a>
+            {featuredVideo.url && (
+              <a className="btn btn--ghost" href={featuredVideo.url} target="_blank" rel="noopener">
+                <span>{copy.youtubeVideoCta}</span>
+                <span className="arrow">{"\u2197"}</span>
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="youtube-player" data-interactive>
+          {embedUrl ? (
+            <iframe
+              src={embedUrl}
+              title={videoTitle}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          ) : (
+            <div className="youtube-fallback">
+              <strong>{videoTitle}</strong>
+              <span>{copy.youtubeVideoFallback}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Experience({ lang = "pt" }) {
   const data = getData(lang);
   const copy = getCopy(lang);
 
   return (
-    <section id="experience" className="section" data-screen-label="05 Experience">
+    <section id="experience" className="section" data-screen-label="06 Experience">
       <div className="section-head">
         <div>
-          <div className="section-label"><span className="accent">▸</span>{"  "}05 / {copy.sections.find((section) => section.id === "experience")?.label || "EXP"}</div>
+          <div className="section-label"><span className="accent">▸</span>{"  "}06 / {copy.sections.find((section) => section.id === "experience")?.label || "EXP"}</div>
         </div>
         <h2 className="section-title">{copy.experienceTitle[0]}<em>{copy.experienceTitle[1]}</em>{copy.experienceTitle[2]}</h2>
         <div className="section-meta">{copy.experienceMeta}</div>
@@ -518,7 +602,7 @@ function Certificates({ lang = "pt" }) {
   const copy = getCopy(lang);
 
   return (
-    <section id="education" className="section" data-screen-label="06 Education">
+    <section id="education" className="section" data-screen-label="07 Education">
       <div className="section-head">
         <div>
           <div className="section-label"><span className="accent">▸</span>{"  "}{copy.educationLabel}</div>
@@ -583,10 +667,10 @@ function Contact({ lang = "pt" }) {
   };
 
   return (
-    <section id="contact" className="contact-section" data-screen-label="07 Contact">
+    <section id="contact" className="contact-section" data-screen-label="08 Contact">
       <div className="section-head">
         <div>
-          <div className="section-label"><span className="accent">▸</span>{"  "}07 / {copy.sections.find((section) => section.id === "contact")?.label || "CONTACT"}</div>
+          <div className="section-label"><span className="accent">▸</span>{"  "}08 / {copy.sections.find((section) => section.id === "contact")?.label || "CONTACT"}</div>
         </div>
         <div className="section-meta">{copy.contactMeta}</div>
       </div>
@@ -690,6 +774,7 @@ Object.assign(window, {
   Manifesto,
   Stack,
   Projects,
+  YouTubeSection,
   Experience,
   Certificates,
   Contact,
