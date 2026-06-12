@@ -1558,7 +1558,7 @@ button {
 }
 .cert-row {
   display: grid;
-  grid-template-columns: 56px 1fr auto auto;
+  grid-template-columns: 56px minmax(0, 1fr) auto auto auto;
   gap: 18px;
   align-items: center;
   padding: 18px 0;
@@ -1577,6 +1577,7 @@ button {
 }
 .cert-title {
   color: var(--text-strong);
+  min-width: 0;
 }
 .cert-org {
   color: var(--muted-2);
@@ -1589,11 +1590,58 @@ button {
   color: var(--accent);
   letter-spacing: 0.08em;
 }
+.cert-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: end;
+  border: 1px solid var(--line);
+  padding: 7px 10px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-strong);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.cert-link:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.cert-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 18px;
+}
+.cert-pagination button {
+  min-width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.cert-pagination button:hover,
+.cert-pagination button.is-active {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 
 @media (max-width: 600px) {
   .cert-row {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+  .cert-link {
+    justify-self: start;
+    margin-top: 6px;
+  }
+  .cert-pagination {
+    justify-content: flex-start;
   }
 }
 

@@ -44,6 +44,46 @@ function getYouTubeEmbedUrl(url) {
 
 // ─── Hooks ────────────────────────────────────────────────────
 
+const CERTIFICATES_PER_PAGE = 9;
+
+function getCertificateOrderValue(item) {
+  const rawValue = item?.ordem ?? item?.order;
+  if (rawValue === "" || rawValue === null || rawValue === undefined) return null;
+  const value = Number(rawValue);
+  return Number.isFinite(value) ? value : null;
+}
+
+function getCertificateHref(url) {
+  const value = String(url || "").trim();
+  if (!value) return "";
+
+  const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  try {
+    const parsed = new URL(withProtocol);
+    return /^https?:$/i.test(parsed.protocol) ? parsed.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function orderCertificates(items) {
+  return items
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const orderA = getCertificateOrderValue(a.item);
+      const orderB = getCertificateOrderValue(b.item);
+
+      if (orderA !== null || orderB !== null) {
+        if (orderA === null) return 1;
+        if (orderB === null) return -1;
+        if (orderA !== orderB) return orderA - orderB;
+      }
+
+      return a.index - b.index;
+    })
+    .map(({ item }) => item);
+}
+
 function useReveal(threshold = 0.2) {
   const ref = useRef(null);
   const [seen, setSeen] = useState(false);
@@ -600,6 +640,20 @@ function ExperienceItem({ item, copy }) {
 function Certificates({ lang = "pt" }) {
   const data = getData(lang);
   const copy = getCopy(lang);
+  const [page, setPage] = useState(1);
+  const certificates = useMemo(() => orderCertificates(data.certificates || []), [data.certificates]);
+  const pageCount = Math.max(1, Math.ceil(certificates.length / CERTIFICATES_PER_PAGE));
+  const currentPage = Math.min(page, pageCount);
+  const pageStart = (currentPage - 1) * CERTIFICATES_PER_PAGE;
+  const visibleCertificates = certificates.slice(pageStart, pageStart + CERTIFICATES_PER_PAGE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [lang, certificates.length]);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
 
   return (
     <section id="education" className="section" data-screen-label="07 Education">
@@ -634,14 +688,38 @@ function Certificates({ lang = "pt" }) {
         </div>
 
         <div className="cert-list">
-          {data.certificates.map((c, i) => (
-            <div key={i} className="cert-row">
-              <span className="cert-num">{String(i + 1).padStart(2, "0")}</span>
-              <span className="cert-title">{c.title}</span>
-              <span className="cert-org">{c.org}</span>
-              <span className="cert-year">{c.year}</span>
+          {visibleCertificates.map((c, i) => {
+            const href = getCertificateHref(c.url || c.logoUrl);
+            const number = pageStart + i + 1;
+            return (
+              <div key={c.id || `${c.title}-${number}`} className={`cert-row ${href ? "has-link" : ""}`}>
+                <span className="cert-num">{String(number).padStart(2, "0")}</span>
+                <span className="cert-title">{c.title}</span>
+                <span className="cert-org">{c.org}</span>
+                <span className="cert-year">{c.year}</span>
+                {href && (
+                  <a className="cert-link" href={href} target="_blank" rel="noopener">
+                    {copy.certificateLink || "ACESSAR"}
+                  </a>
+                )}
+              </div>
+            );
+          })}
+          {pageCount > 1 && (
+            <div className="cert-pagination" aria-label="Paginacao de certificados">
+              {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  className={pageNumber === currentPage ? "is-active" : ""}
+                  onClick={() => setPage(pageNumber)}
+                  aria-current={pageNumber === currentPage ? "page" : undefined}
+                >
+                  {pageNumber}
+                </button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       </div>
     </section>
