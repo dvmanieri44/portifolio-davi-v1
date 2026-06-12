@@ -25,6 +25,26 @@ function yearOf(value) {
   return toDate(value)?.getFullYear()?.toString() || "";
 }
 
+function orderValue(item) {
+  const rawValue = item?.ordem ?? item?.order;
+  if (rawValue === "" || rawValue === null || rawValue === undefined) return null;
+  const value = Number(rawValue);
+  return Number.isFinite(value) ? value : null;
+}
+
+function compareCertificates(a, b) {
+  const orderA = orderValue(a);
+  const orderB = orderValue(b);
+
+  if (orderA !== null || orderB !== null) {
+    if (orderA === null) return 1;
+    if (orderB === null) return -1;
+    if (orderA !== orderB) return orderA - orderB;
+  }
+
+  return (toDate(b.dataInicio)?.getTime() ?? 0) - (toDate(a.dataInicio)?.getTime() ?? 0);
+}
+
 function periodLabel(start, end, current = false) {
   const startYear = yearOf(start);
   const endYear = current ? "em curso" : yearOf(end);
@@ -72,10 +92,14 @@ function normalizeEducation(item) {
 }
 
 function normalizeCertificate(item) {
+  const explicitUrl = typeof item.url === "string" ? item.url : "";
+  const legacyUrl = typeof item.logoUrl === "string" ? item.logoUrl : "";
   return {
     ...item,
     title: item.title || "Certificado",
     org: item.instituicao || "",
+    url: explicitUrl || legacyUrl,
+    ordem: orderValue(item),
     year: yearOf(item.dataFinal || item.dataInicio),
   };
 }
@@ -128,7 +152,7 @@ async function refreshPortfolioData() {
     .map(normalizeEducation);
   const certs = certificates
     .filter((item) => !item.formacao)
-    .sort((a, b) => (toDate(b.dataInicio)?.getTime() ?? 0) - (toDate(a.dataInicio)?.getTime() ?? 0))
+    .sort(compareCertificates)
     .map(normalizeCertificate);
 
   window.PORTFOLIO_DATA = {

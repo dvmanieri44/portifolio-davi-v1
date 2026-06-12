@@ -260,6 +260,10 @@ function getAdminItemTitle(type, item) {
 function getAdminItemMeta(type, item) {
   if (type === "projects") return item.year || "";
   if (type === "experiences") return item.empresa || item.company || "";
+  if (type === "certificates") {
+    const order = item.ordem || item.order;
+    return [order ? `Ordem ${order}` : "", item.instituicao || item.org || ""].filter(Boolean).join(" - ");
+  }
   return item.instituicao || item.org || "";
 }
 
@@ -306,10 +310,16 @@ function buildAdminPayload(type, form) {
   }
 
   const current = form.get("atual") === "on";
+  const orderRaw = String(form.get("ordem") || "").trim();
+  const orderValue = orderRaw ? Number(orderRaw) : null;
   return {
     title: String(form.get("title") || ""),
     instituicao: String(form.get("instituicao") || ""),
-    logoUrl: String(form.get("logoUrl") || ""),
+    ...(type === "certificates" ? {
+      url: String(form.get("url") || ""),
+      logoUrl: "",
+      ordem: Number.isFinite(orderValue) ? orderValue : null,
+    } : {}),
     dataInicio: form.get("dataInicio") ? new Date(String(form.get("dataInicio"))) : null,
     dataFinal: current || !form.get("dataFinal") ? null : new Date(String(form.get("dataFinal"))),
     atual: current,
@@ -503,7 +513,19 @@ function AdminPanel({ onClose }) {
               <>
                 <input name="title" placeholder="Título" defaultValue={item?.title || ""} required />
                 <input name="instituicao" placeholder="Instituição" defaultValue={item?.instituicao || ""} required />
-                <input name="logoUrl" placeholder="URL do logo" defaultValue={item?.logoUrl || ""} />
+                {type === "certificates" && (
+                  <div className="admin-form-row">
+                    <input name="url" placeholder="URL do certificado" defaultValue={item?.url || item?.logoUrl || ""} />
+                    <input
+                      name="ordem"
+                      type="number"
+                      min="1"
+                      step="1"
+                      placeholder="Ordem"
+                      defaultValue={item?.ordem || item?.order || ""}
+                    />
+                  </div>
+                )}
                 <div className="admin-form-row">
                   <input name="dataInicio" type="date" defaultValue={toInputDate(item?.dataInicio)} required />
                   <input
