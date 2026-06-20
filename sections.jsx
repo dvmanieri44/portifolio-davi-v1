@@ -711,10 +711,6 @@ function AuroraPhone({ stageRef, phoneRef, shadowRef, lang }) {
             <span className="hero-phone-camera camera-three" />
             <span className="hero-phone-monogram">D</span>
           </div>
-          <div className="hero-phone-rail rail-left"><i /><i /></div>
-          <div className="hero-phone-rail rail-right"><i /></div>
-          <div className="hero-phone-rail rail-top" />
-          <div className="hero-phone-rail rail-bottom" />
           <div className="hero-phone-front">
             <div className="aurora-screen">
               <span className="aurora-glare" />

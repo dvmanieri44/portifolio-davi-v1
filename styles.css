@@ -1088,6 +1088,30 @@ body[data-theme="light"] .hero-vignette {
   will-change: transform;
 }
 
+.hero-phone::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 41px;
+  background: linear-gradient(145deg, #25262b, #0b0c0e 45%, #1a1b1f);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transform: translateZ(-8px);
+}
+
+.hero-phone::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 176px;
+  right: 3px;
+  width: 4px;
+  height: 74px;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 5px var(--accent);
+  transform: translateZ(13px);
+}
+
 .hero-phone-front,
 .hero-phone-back {
   position: absolute;
@@ -1139,45 +1163,6 @@ body[data-theme="light"] .hero-vignette {
   font-style: italic;
   color: rgba(235, 231, 223, 0.13);
 }
-
-.hero-phone-rail {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  background: linear-gradient(90deg, #070708, #1c1d21, #070708);
-}
-
-.rail-left,
-.rail-right {
-  width: 24px;
-  height: 558px;
-}
-
-.rail-left { transform: translate(-50%, -50%) rotateY(-90deg) translateZ(133px); }
-.rail-right { transform: translate(-50%, -50%) rotateY(90deg) translateZ(133px); }
-
-.rail-left i,
-.rail-right i {
-  position: absolute;
-  left: 5px;
-  width: 14px;
-  border-radius: 4px;
-  background: #26272b;
-}
-
-.rail-left i:first-child { top: 150px; height: 54px; }
-.rail-left i:last-child { top: 214px; height: 54px; }
-.rail-right i { top: 176px; height: 74px; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-
-.rail-top,
-.rail-bottom {
-  width: 266px;
-  height: 24px;
-  background: linear-gradient(180deg, #070708, #1c1d21, #070708);
-}
-
-.rail-top { transform: translate(-50%, -50%) rotateX(90deg) translateZ(279px); }
-.rail-bottom { transform: translate(-50%, -50%) rotateX(-90deg) translateZ(279px); }
 
 .hero-phone-front {
   transform: translateZ(12px);
