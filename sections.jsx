@@ -976,7 +976,7 @@ function CertificateCard({ certificate, copy, onOpen }) {
   );
 }
 
-function Skills({ lang = "pt" }) {
+function Learning({ lang = "pt" }) {
   const data = getData(lang);
   const copy = getCopy(lang);
   const skills = data.skills || [];
@@ -999,67 +999,112 @@ function Skills({ lang = "pt" }) {
     }
     return result;
   }, [skills, certificates, copy.skillsOtherName, copy.skillsOtherDescription]);
-  const firstOpenId = groups.find((group) => group.certificates.length)?.id || groups[0]?.id || null;
-  const [openId, setOpenId] = useState(firstOpenId);
+  const marqueeItems = useMemo(() => {
+    const seen = new Set();
+    return (copy.stackRows || []).flat().filter((item) => {
+      const key = String(item).replace(/<[^>]+>/g, "").trim().toUpperCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [copy.stackRows]);
+  const [openId, setOpenId] = useState(null);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
-  const sectionNumber = getSectionNumber(copy, "skills");
+  const sectionNumber = getSectionNumber(copy, "education");
 
   useEffect(() => {
-    if (!groups.some((group) => group.id === openId)) setOpenId(firstOpenId);
-  }, [groups, openId, firstOpenId]);
+    if (openId && !groups.some((group) => group.id === openId)) setOpenId(null);
+  }, [groups, openId]);
 
   return (
-    <section id="skills" className="skills-section section--full" data-screen-label={`${sectionNumber} Skills`}>
+    <section id="education" className="skills-section learning-section section--full" data-screen-label={`${sectionNumber} Learning`}>
       <div className="skills-head">
         <div className="section-head">
           <div>
-            <div className="section-label"><span className="accent">▸</span>{"  "}{sectionNumber} / {getSectionName(copy, "skills", "SKILLS")}</div>
+            <div className="section-label"><span className="accent">▸</span>{"  "}{sectionNumber} / {getSectionName(copy, "education", copy.educationLabel)}</div>
           </div>
-          <h2 className="section-title">{copy.skillsTitle[0]}<em>{copy.skillsTitle[1]}</em>{copy.skillsTitle[2]}</h2>
-          <div className="section-meta">{copy.stackMeta}</div>
+          <h2 className="section-title">{copy.educationTitle[0]}<em>{copy.educationTitle[1]}</em>{copy.educationTitle[2]}</h2>
+          <div className="section-meta">{data.education.length}{copy.educationMetaSuffix}</div>
         </div>
       </div>
 
-      <MarqueeRow items={copy.stackRows[0]} dur={48} />
-      <MarqueeRow items={copy.stackRows[1]} outline dur={62} />
-
-      <div className="skills-accordion">
-        {groups.map((group, index) => {
-          const isOpen = openId === group.id;
-          const countLabel = group.certificates.length === 1 ? copy.skillsCertificateSingular : copy.skillsCertificatePlural;
-          return (
-            <article key={group.id} className={`skill-group ${isOpen ? "is-open" : ""}`}>
-              <button
-                type="button"
-                className="skill-group-trigger"
-                onClick={() => setOpenId(isOpen ? null : group.id)}
-                aria-expanded={isOpen}
-                aria-controls={`skill-panel-${index}`}
-              >
-                <span className="skill-group-index">{String(index + 1).padStart(2, "0")}</span>
-                <span className="skill-group-main">
-                  <strong>{group.name}</strong>
-                  {group.description && <span>{group.description}</span>}
-                </span>
-                <span className="skill-group-count">{group.certificates.length} {countLabel}</span>
-                <span className="skill-group-icon" aria-hidden="true">+</span>
-              </button>
-              {isOpen && (
-                <div id={`skill-panel-${index}`} className="skill-group-panel">
-                  {group.certificates.length ? (
-                    <div className="skill-certificates-grid">
-                      {group.certificates.map((certificate) => (
-                        <CertificateCard key={certificate.id || certificate.title} certificate={certificate} copy={copy} onOpen={setSelectedCertificate} />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="skill-group-empty">0 {copy.skillsCertificatePlural}</p>
-                  )}
+      <div className="learning-formal">
+        <div className="learning-step-head">
+          <div className="learning-step-label"><span>{sectionNumber}.1</span> / {copy.educationLabel}</div>
+          <div className="learning-step-meta">{data.education.length}{copy.educationMetaSuffix}</div>
+        </div>
+        <div className="education education-grid">
+          {data.education.map((education, index) => {
+            const href = getCertificateAccessHref(education);
+            return (
+              <article key={education.id || index} className={`edu-card ${education.current ? "is-current" : ""}`}>
+                <div className="edu-kind">
+                  {education.kind === "graduation" ? copy.graduation : copy.technical}
+                  {education.current ? ` · ${copy.inProgress}` : ""}
                 </div>
-              )}
-            </article>
-          );
-        })}
+                <h3 className="edu-title">{education.title}</h3>
+                <div className="edu-org">{education.org}</div>
+                <div className="edu-period">{education.period}</div>
+                {href && (
+                  <a className="cert-link edu-link" href={href} target="_blank" rel="noopener">
+                    {copy.certificateLink || "OPEN"}
+                  </a>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </div>
+
+      <div id="skills" className="learning-skills-anchor">
+        <div className="learning-skills-head">
+          <div className="learning-step-head">
+            <div className="learning-step-label"><span>{sectionNumber}.2</span> / SKILLS</div>
+            <div className="learning-step-meta">{copy.stackMeta}</div>
+          </div>
+          <h3 className="learning-skills-title">{copy.skillsTitle[0]}<em>{copy.skillsTitle[1]}</em>{copy.skillsTitle[2]}</h3>
+        </div>
+
+        <MarqueeRow items={marqueeItems} dur={54} />
+
+        <div className="skills-accordion">
+          {groups.map((group, index) => {
+            const isOpen = openId === group.id;
+            const countLabel = group.certificates.length === 1 ? copy.skillsCertificateSingular : copy.skillsCertificatePlural;
+            return (
+              <article key={group.id} className={`skill-group ${isOpen ? "is-open" : ""}`}>
+                <button
+                  type="button"
+                  className="skill-group-trigger"
+                  onClick={() => setOpenId(isOpen ? null : group.id)}
+                  aria-expanded={isOpen}
+                  aria-controls={`skill-panel-${index}`}
+                >
+                  <span className="skill-group-index">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="skill-group-main">
+                    <strong>{group.name}</strong>
+                    {group.description && <span>{group.description}</span>}
+                  </span>
+                  <span className="skill-group-count">{group.certificates.length} {countLabel}</span>
+                  <span className="skill-group-icon" aria-hidden="true">+</span>
+                </button>
+                {isOpen && (
+                  <div id={`skill-panel-${index}`} className="skill-group-panel">
+                    {group.certificates.length ? (
+                      <div className="skill-certificates-grid">
+                        {group.certificates.map((certificate) => (
+                          <CertificateCard key={certificate.id || certificate.title} certificate={certificate} copy={copy} onOpen={setSelectedCertificate} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="skill-group-empty">0 {copy.skillsCertificatePlural}</p>
+                    )}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
       </div>
 
       {selectedCertificate && <CertificateModal certificate={selectedCertificate} copy={copy} onClose={() => setSelectedCertificate(null)} />}
@@ -1270,46 +1315,6 @@ function ExperienceItem({ item, copy }) {
 
 // ─── Education ──────────────────────────────────────────────
 
-function Education({ lang = "pt" }) {
-  const data = getData(lang);
-  const copy = getCopy(lang);
-  const sectionNumber = getSectionNumber(copy, "education");
-
-  return (
-    <section id="education" className="section" data-screen-label={`${sectionNumber} Education`}>
-      <div className="section-head">
-        <div>
-          <div className="section-label"><span className="accent">▸</span>{"  "}{sectionNumber} / {copy.educationLabel}</div>
-        </div>
-        <h2 className="section-title">{copy.educationTitle[0]}<em>{copy.educationTitle[1]}</em>{copy.educationTitle[2]}</h2>
-        <div className="section-meta">{data.education.length}{copy.educationMetaSuffix}</div>
-      </div>
-
-      <div className="education education-grid">
-        {data.education.map((education, index) => {
-          const href = getCertificateAccessHref(education);
-          return (
-            <article key={education.id || index} className={`edu-card ${education.current ? "is-current" : ""}`}>
-              <div className="edu-kind">
-                {education.kind === "graduation" ? copy.graduation : copy.technical}
-                {education.current ? ` · ${copy.inProgress}` : ""}
-              </div>
-              <h3 className="edu-title">{education.title}</h3>
-              <div className="edu-org">{education.org}</div>
-              <div className="edu-period">{education.period}</div>
-              {href && (
-                <a className="cert-link edu-link" href={href} target="_blank" rel="noopener">
-                  {copy.certificateLink || "OPEN"}
-                </a>
-              )}
-            </article>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 // ─── Contact ─────────────────────────────────────────────────
 
 function Contact({ lang = "pt" }) {
@@ -1435,11 +1440,10 @@ Object.assign(window, {
   Nav,
   Hero,
   Manifesto,
-  Skills,
+  Learning,
   Projects,
   YouTubeSection,
   Experience,
-  Education,
   Contact,
   Footer,
   ScrollProgress,

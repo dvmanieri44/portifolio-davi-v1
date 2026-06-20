@@ -1592,6 +1592,72 @@ body[data-theme="light"] .hero-vignette {
   padding: 0 var(--pad-page);
 }
 
+.learning-section {
+  padding-bottom: var(--pad-section);
+}
+
+.learning-formal,
+.learning-skills-head {
+  width: min(100%, var(--maxw));
+  margin-inline: auto;
+  padding-inline: var(--pad-page);
+}
+
+.learning-formal {
+  margin-bottom: clamp(88px, 11vw, 156px);
+}
+
+.learning-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.learning-step-label { color: var(--text); }
+.learning-step-label span { color: var(--accent); }
+.learning-step-meta { color: var(--muted); text-align: right; }
+
+.learning-skills-anchor {
+  scroll-margin-top: 96px;
+  padding-top: clamp(72px, 9vw, 128px);
+  border-top: 1px solid var(--line);
+}
+
+.learning-skills-head {
+  margin-bottom: clamp(42px, 6vw, 72px);
+}
+
+.learning-skills-title {
+  max-width: 940px;
+  font-family: var(--font-display);
+  font-size: clamp(48px, 7vw, 104px);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  color: var(--text-strong);
+}
+
+.learning-skills-title em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.learning-skills-anchor .marquee {
+  margin-bottom: clamp(52px, 7vw, 92px);
+}
+
+.learning-skills-anchor .skills-accordion {
+  margin-top: 0;
+}
+
 .marquee {
   display: flex;
   overflow: hidden;
@@ -1653,9 +1719,21 @@ body[data-theme="light"] .hero-vignette {
 }
 @media (max-width: 760px) {
   .stack-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .learning-formal { margin-bottom: 72px; }
+  .learning-step-head { align-items: flex-start; }
+  .learning-skills-anchor { padding-top: 64px; }
+  .learning-skills-title { font-size: clamp(46px, 15vw, 72px); }
 }
 @media (max-width: 480px) {
   .stack-grid { grid-template-columns: 1fr; }
+
+  .learning-step-head {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .learning-step-meta { text-align: left; }
 }
 
 .stack-cell {

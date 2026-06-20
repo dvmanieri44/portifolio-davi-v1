@@ -198,9 +198,8 @@ window.PORTFOLIO_COPY = {
     documentTitle: "Davi Manieri - Portfolio",
     sections: [
       { id: "hero", label: "INICIO" },
-      { id: "education", label: "FORMACAO" },
+      { id: "education", label: "FORMACAO + SKILLS" },
       { id: "experience", label: "EXP" },
-      { id: "skills", label: "SKILLS" },
       { id: "manifesto", label: "MANIFESTO" },
       { id: "projects", label: "PROJETOS" },
       { id: "youtube", label: "YOUTUBE" },
@@ -335,9 +334,8 @@ window.PORTFOLIO_COPY = {
     documentTitle: "Davi Manieri - Portfolio",
     sections: [
       { id: "hero", label: "HOME" },
-      { id: "education", label: "EDUCATION" },
+      { id: "education", label: "EDUCATION + SKILLS" },
       { id: "experience", label: "EXP" },
-      { id: "skills", label: "SKILLS" },
       { id: "manifesto", label: "MANIFESTO" },
       { id: "projects", label: "PROJECTS" },
       { id: "youtube", label: "YOUTUBE" },

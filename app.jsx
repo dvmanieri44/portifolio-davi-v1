@@ -42,7 +42,7 @@ const ACCENT_OPTIONS = [
   "#fbbf24", // amber
 ];
 
-const SECTION_IDS = ["hero", "education", "experience", "skills", "manifesto", "projects", "youtube", "contact"];
+const SECTION_IDS = ["hero", "education", "experience", "manifesto", "projects", "youtube", "contact"];
 
 function useActiveSection(ids) {
   const [active, setActive] = useState(ids[0]);
@@ -169,9 +169,8 @@ function App() {
 
         <main>
           <Hero lang={lang} />
-          <Education lang={lang} />
+          <Learning lang={lang} />
           <Experience lang={lang} />
-          <Skills lang={lang} />
           <Manifesto lang={lang} />
           <Projects lang={lang} />
           <YouTubeSection lang={lang} />
