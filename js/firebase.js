@@ -1,5 +1,6 @@
-﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getApp, getApps, initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCmIXlBm6Yr0umZFS0n1s7m1CeIgu4Tp_4",
@@ -10,7 +11,14 @@ const firebaseConfig = {
   appId: "1:528239006796:web:6eccb93fdb3edb8b2590e9"
 };
 
+export function initFirebaseApp() {
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+}
+
 export function initFirebase() {
-  const app = initializeApp(firebaseConfig);
-  return getFirestore(app);
+  return getFirestore(initFirebaseApp());
+}
+
+export function initFirebaseStorage() {
+  return getStorage(initFirebaseApp());
 }

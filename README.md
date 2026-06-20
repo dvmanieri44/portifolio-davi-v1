@@ -1,6 +1,6 @@
 # Portfolio - Davi Manieri
 
-Site de portfolio pessoal com secoes de projetos, certificados, experiencias e contato. A interface suporta troca de idioma e tema, com conteudo carregado do Firebase.
+Site de portfolio pessoal com secoes de formacao, experiencia, skills com certificados, projetos e contato. A interface suporta troca de idioma e tema, com conteudo carregado do Firebase.
 
 ## Tecnologias
 - HTML, CSS e JavaScript

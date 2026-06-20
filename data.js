@@ -45,6 +45,8 @@ window.PORTFOLIO_DATA = {
     { label: "Sistemas", items: ["Embarcados"] },
   ],
 
+  skills: [],
+
   projects: [
     {
       id: "sentinel",
@@ -196,12 +198,12 @@ window.PORTFOLIO_COPY = {
     documentTitle: "Davi Manieri - Portfolio",
     sections: [
       { id: "hero", label: "INICIO" },
+      { id: "education", label: "FORMACAO" },
+      { id: "experience", label: "EXP" },
+      { id: "skills", label: "SKILLS" },
       { id: "manifesto", label: "MANIFESTO" },
-      { id: "stack", label: "STACK" },
       { id: "projects", label: "PROJETOS" },
       { id: "youtube", label: "YOUTUBE" },
-      { id: "experience", label: "EXP" },
-      { id: "education", label: "EDUCACAO" },
       { id: "contact", label: "CONTATO" },
     ],
     adminPromptPassword: "Digite a senha",
@@ -233,7 +235,16 @@ window.PORTFOLIO_COPY = {
       ["Sou tecnico em Desenvolvimento de Sistemas pelo ", "SENAI", ", onde recebi o premio de melhor aluno do curso tecnico."],
       ["Hoje estudo Engenharia da Computacao e busco construir produtos ", "simples, robustos e uteis", "."],
     ],
-    stackMeta: "// ferramentas + materiais",
+    stackMeta: "// competencias comprovadas",
+    skillsTitle: ["Competencias com ", "evidencias", "."],
+    skillsCertificateSingular: "certificado",
+    skillsCertificatePlural: "certificados",
+    skillsOtherName: "Outros",
+    skillsOtherDescription: "Certificados aguardando classificacao por skill.",
+    certificatePreview: "VISUALIZAR",
+    certificateDownload: "BAIXAR",
+    certificateClose: "FECHAR",
+    certificateNoPreview: "A visualizacao deste arquivo nao esta disponivel no navegador.",
     stackRows: [
       ["DOCKER", "<em>KOTLIN</em>", "JETPACK COMPOSE", "ANDROID", "<em>MVI</em>", "CLEAN ARCHITECTURE"],
       ["GIT", "<em>CI/CD</em>", "EMBARCADOS", "DOCKER", "KOTLIN", "<em>ANDROID</em>"],
@@ -253,9 +264,9 @@ window.PORTFOLIO_COPY = {
     experienceMeta: "// linha do tempo",
     current: "ATUAL",
     present: "Presente",
-    educationLabel: "07 / FORMACAO + CERTIFICADOS",
+    educationLabel: "FORMACAO",
     educationTitle: ["Sempre ", "aprendendo", "."],
-    educationMetaSuffix: "+ certificados",
+    educationMetaSuffix: " formacoes",
     graduation: "GRADUACAO",
     technical: "TECNICO",
     inProgress: "EM CURSO",
@@ -324,12 +335,12 @@ window.PORTFOLIO_COPY = {
     documentTitle: "Davi Manieri - Portfolio",
     sections: [
       { id: "hero", label: "HOME" },
+      { id: "education", label: "EDUCATION" },
+      { id: "experience", label: "EXP" },
+      { id: "skills", label: "SKILLS" },
       { id: "manifesto", label: "MANIFESTO" },
-      { id: "stack", label: "STACK" },
       { id: "projects", label: "PROJECTS" },
       { id: "youtube", label: "YOUTUBE" },
-      { id: "experience", label: "EXP" },
-      { id: "education", label: "EDUCATION" },
       { id: "contact", label: "CONTACT" },
     ],
     adminPromptPassword: "Enter the password",
@@ -361,7 +372,16 @@ window.PORTFOLIO_COPY = {
       ["I am a Systems Development Technician from ", "SENAI", ", where I received the best student award in the technical program."],
       ["Today I study Computer Engineering and focus on products that are ", "simple, robust, and useful", "."],
     ],
-    stackMeta: "// tools + materials",
+    stackMeta: "// verified capabilities",
+    skillsTitle: ["Skills backed by ", "evidence", "."],
+    skillsCertificateSingular: "certificate",
+    skillsCertificatePlural: "certificates",
+    skillsOtherName: "Other",
+    skillsOtherDescription: "Certificates waiting to be assigned to a skill.",
+    certificatePreview: "PREVIEW",
+    certificateDownload: "DOWNLOAD",
+    certificateClose: "CLOSE",
+    certificateNoPreview: "This file cannot be previewed in the browser.",
     stackRows: [
       ["DOCKER", "<em>KOTLIN</em>", "JETPACK COMPOSE", "ANDROID", "<em>MVI</em>", "CLEAN ARCHITECTURE"],
       ["GIT", "<em>CI/CD</em>", "EMBEDDED", "DOCKER", "KOTLIN", "<em>ANDROID</em>"],
@@ -381,9 +401,9 @@ window.PORTFOLIO_COPY = {
     experienceMeta: "// timeline",
     current: "CURRENT",
     present: "Present",
-    educationLabel: "07 / EDUCATION + CERTIFICATES",
+    educationLabel: "EDUCATION",
     educationTitle: ["Always ", "learning", "."],
-    educationMetaSuffix: "+ certificates",
+    educationMetaSuffix: " programs",
     graduation: "DEGREE",
     technical: "TECHNICAL",
     inProgress: "IN PROGRESS",
@@ -541,6 +561,19 @@ window.getPortfolioData = function getPortfolioData(lang) {
     return { ...item, ...(map[key] || {}), ...explicit };
   };
 
+  const skills = base.skills?.length
+    ? base.skills.map((item) => translateByKey(item, {}, ["name"], {
+        name: ["nameEn"],
+        description: ["descriptionEn"],
+      }))
+    : (copy.stackData || base.stack).map((category, index) => ({
+        id: `fallback-skill-${index + 1}`,
+        name: category.items?.[0] || category.label,
+        description: category.label || "",
+        ordem: index + 1,
+        isFallback: true,
+      }));
+
   return {
     ...base,
     identity: {
@@ -551,6 +584,7 @@ window.getPortfolioData = function getPortfolioData(lang) {
     },
     manifesto: copy.manifestoData || base.manifesto,
     stack: copy.stackData || base.stack,
+    skills,
     projects: base.projects.map((project) => {
       const fallback = copy.projectData?.[project.id] || {};
       return translateByKey(
@@ -578,6 +612,7 @@ window.getPortfolioData = function getPortfolioData(lang) {
     certificates: base.certificates.map((item) => translateByKey(item, copy.certificateData || {}, ["title", "org"], {
       title: ["titleEn"],
       org: ["orgEn", "instituicaoEn"],
+      description: ["descriptionEn"],
     })),
   };
 };

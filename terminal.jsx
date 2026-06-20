@@ -99,10 +99,11 @@ function Terminal({ lang = "pt" }) {
       case "skills": case "stack":
         output = (
           <>
-            {data.stack.map((cat) => (
-              <TerminalLine key={cat.label} kind="default">
-                <span className="kw" style={{ display: "inline-block", width: 100 }}>{cat.label.toLowerCase()}</span>
-                {cat.items.join("  ·  ")}
+            {(data.skills || []).map((skill) => (
+              <TerminalLine key={skill.id || skill.name} kind="default">
+                <span className="kw" style={{ display: "inline-block", width: 180 }}>{skill.name}</span>
+                {skill.description}
+                <span className="dim">  · {(data.certificates || []).filter((certificate) => certificate.skillId === skill.id).length} certs</span>
               </TerminalLine>
             ))}
           </>

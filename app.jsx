@@ -42,7 +42,7 @@ const ACCENT_OPTIONS = [
   "#fbbf24", // amber
 ];
 
-const SECTION_IDS = ["hero", "manifesto", "stack", "projects", "youtube", "experience", "education", "contact"];
+const SECTION_IDS = ["hero", "education", "experience", "skills", "manifesto", "projects", "youtube", "contact"];
 
 function useActiveSection(ids) {
   const [active, setActive] = useState(ids[0]);
@@ -86,6 +86,12 @@ function App() {
     window.addEventListener("portfolio-data-ready", rerender);
     return () => window.removeEventListener("portfolio-data-ready", rerender);
   }, []);
+
+  useEffect(() => {
+    if (!splashGone || !window.location.hash) return;
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    window.requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
+  }, [splashGone]);
 
   useEffect(() => {
     let clicks = 0;
@@ -163,12 +169,12 @@ function App() {
 
         <main>
           <Hero lang={lang} />
+          <Education lang={lang} />
+          <Experience lang={lang} />
+          <Skills lang={lang} />
           <Manifesto lang={lang} />
-          <Stack lang={lang} />
           <Projects lang={lang} />
           <YouTubeSection lang={lang} />
-          <Experience lang={lang} />
-          <Certificates lang={lang} />
           <Contact lang={lang} />
         </main>
 
@@ -235,6 +241,7 @@ const ADMIN_TABS = [
   { id: "profile", label: "YouTube" },
   { id: "projects", label: "Projetos" },
   { id: "experiences", label: "Experiências" },
+  { id: "skills", label: "Skills" },
   { id: "certificates", label: "Certificados" },
   { id: "education", label: "Formação" },
 ];
@@ -243,6 +250,7 @@ function getAdminItems(type, data) {
   if (type === "profile") return [];
   if (type === "projects") return data.projects;
   if (type === "experiences") return data.experiences;
+  if (type === "skills") return data.skills || [];
   if (type === "education") return data.education;
   return data.certificates;
 }
@@ -254,15 +262,21 @@ function getAdminStorageType(type) {
 function getAdminItemTitle(type, item) {
   if (type === "projects") return item.title || item.name || "Projeto sem título";
   if (type === "experiences") return item.cargo || item.role || "Experiência sem cargo";
+  if (type === "skills") return item.name || "Skill sem nome";
   return item.title || "Item sem título";
 }
 
 function getAdminItemMeta(type, item) {
   if (type === "projects") return item.year || "";
   if (type === "experiences") return item.empresa || item.company || "";
+  if (type === "skills") {
+    const order = item.ordem || item.order;
+    return [order ? `Ordem ${order}` : "", item.nameEn || ""].filter(Boolean).join(" - ");
+  }
   if (type === "certificates") {
     const order = item.ordem || item.order;
-    return [order ? `Ordem ${order}` : "", item.instituicao || item.org || ""].filter(Boolean).join(" - ");
+    const skill = (window.PORTFOLIO_DATA.skills || []).find((entry) => entry.id === item.skillId);
+    return [skill?.name || "Outros", order ? `Ordem ${order}` : "", item.instituicao || item.org || ""].filter(Boolean).join(" - ");
   }
   return item.instituicao || item.org || "";
 }
@@ -309,22 +323,48 @@ function buildAdminPayload(type, form) {
     };
   }
 
+  if (type === "skills") {
+    const orderRaw = String(form.get("ordem") || "").trim();
+    const orderValue = orderRaw ? Number(orderRaw) : null;
+    return {
+      name: String(form.get("name") || "").trim(),
+      nameEn: String(form.get("nameEn") || "").trim(),
+      description: String(form.get("description") || "").trim(),
+      descriptionEn: String(form.get("descriptionEn") || "").trim(),
+      ordem: Number.isFinite(orderValue) ? orderValue : null,
+    };
+  }
+
   const current = form.get("atual") === "on";
   const orderRaw = String(form.get("ordem") || "").trim();
   const orderValue = orderRaw ? Number(orderRaw) : null;
+  const accessUrl = String(form.get("url") || "").trim();
   return {
     title: String(form.get("title") || ""),
+    titleEn: String(form.get("titleEn") || ""),
+    description: String(form.get("description") || ""),
+    descriptionEn: String(form.get("descriptionEn") || ""),
     instituicao: String(form.get("instituicao") || ""),
+    url: accessUrl,
+    fileUrl: accessUrl,
+    logoUrl: "",
     ...(type === "certificates" ? {
-      url: String(form.get("url") || ""),
-      logoUrl: "",
       ordem: Number.isFinite(orderValue) ? orderValue : null,
+      skillId: String(form.get("skillId") || ""),
     } : {}),
     dataInicio: form.get("dataInicio") ? new Date(String(form.get("dataInicio"))) : null,
     dataFinal: current || !form.get("dataFinal") ? null : new Date(String(form.get("dataFinal"))),
     atual: current,
     formacao: type === "education",
   };
+}
+
+function titleFromFileName(fileName) {
+  return String(fileName || "Certificado")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function AdminPanel({ onClose }) {
@@ -367,6 +407,68 @@ function AdminPanel({ onClose }) {
     setStatus("Salvando...");
     try {
       const payload = buildAdminPayload(type, form);
+      const certificateFiles = (type === "certificates" || type === "education")
+        ? form.getAll("certificateFile").filter((file) => file && file.size > 0)
+        : [];
+
+      if (type === "certificates" && !isEditing && certificateFiles.length > 0) {
+        if (!window.PORTFOLIO_ADMIN?.uploadCertificateFile || !window.PORTFOLIO_ADMIN?.createMany) {
+          throw new Error("Upload em lote indisponivel.");
+        }
+
+        const uploadedPayloads = [];
+        const failedFiles = [];
+        for (let index = 0; index < certificateFiles.length; index += 1) {
+          const file = certificateFiles[index];
+          setStatus(`Enviando ${index + 1}/${certificateFiles.length}: ${file.name}`);
+          try {
+            const url = await window.PORTFOLIO_ADMIN.uploadCertificateFile(file);
+            uploadedPayloads.push({
+              ...payload,
+              title: certificateFiles.length === 1 && payload.title ? payload.title : titleFromFileName(file.name),
+              titleEn: certificateFiles.length === 1 ? payload.titleEn : "",
+              url,
+              fileUrl: url,
+              fileName: file.name,
+              mimeType: file.type,
+            });
+          } catch (error) {
+            console.error(error);
+            failedFiles.push(file.name);
+          }
+        }
+
+        let createdCount = 0;
+        if (uploadedPayloads.length > 0) {
+          setStatus("Salvando certificados...");
+          const results = await window.PORTFOLIO_ADMIN.createMany("certificates", uploadedPayloads);
+          createdCount = results.filter((result) => result.status === "fulfilled").length;
+          results.forEach((result, index) => {
+            if (result.status === "rejected") failedFiles.push(uploadedPayloads[index].fileName);
+          });
+        }
+
+        setStatus(`${createdCount}/${certificateFiles.length} certificados criados${failedFiles.length ? `; falharam: ${failedFiles.join(", ")}` : "."}`);
+        setSelectedId(null);
+        return;
+      }
+
+      if (type === "certificates" && !isEditing && !payload.title && !payload.url) {
+        throw new Error("Informe um titulo, uma URL ou selecione arquivos.");
+      }
+
+      const certificateFile = certificateFiles[0] || null;
+      if (certificateFile && certificateFile.size > 0) {
+        if (!window.PORTFOLIO_ADMIN?.uploadCertificateFile) {
+          throw new Error("Upload de arquivo indisponivel.");
+        }
+        setStatus("Enviando arquivo...");
+        payload.url = await window.PORTFOLIO_ADMIN.uploadCertificateFile(certificateFile, item?.id);
+        payload.fileUrl = payload.url;
+        payload.fileName = certificateFile.name;
+        payload.mimeType = certificateFile.type;
+        setStatus("Salvando...");
+      }
       if (isProfile) {
         await window.PORTFOLIO_ADMIN.saveProfile(payload);
       } else {
@@ -378,14 +480,17 @@ function AdminPanel({ onClose }) {
       setSelectedId(null);
     } catch (error) {
       console.error(error);
-      setStatus("Erro ao salvar.");
+      setStatus(error?.message || "Erro ao salvar.");
     } finally {
       setBusy(false);
     }
   };
 
   const remove = async (entry) => {
-    if (!window.confirm(`Excluir "${getAdminItemTitle(type, entry)}"?`)) return;
+    const warning = type === "skills"
+      ? `Excluir "${getAdminItemTitle(type, entry)}"? Os certificados vinculados serao preservados em Outros.`
+      : `Excluir "${getAdminItemTitle(type, entry)}"?`;
+    if (!window.confirm(warning)) return;
     setBusy(true);
     setStatus("Excluindo...");
     try {
@@ -509,13 +614,61 @@ function AdminPanel({ onClose }) {
               </>
             )}
 
+            {type === "skills" && (
+              <>
+                <div className="admin-form-row">
+                  <input name="name" placeholder="Nome da skill (PT)" defaultValue={item?.name || ""} required />
+                  <input name="nameEn" placeholder="Skill name (EN)" defaultValue={item?.nameEn || ""} required />
+                </div>
+                <textarea name="description" placeholder="Descricao da skill (PT)" defaultValue={item?.description || ""} />
+                <textarea name="descriptionEn" placeholder="Skill description (EN)" defaultValue={item?.descriptionEn || ""} />
+                <input
+                  name="ordem"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="Ordem de exibicao"
+                  defaultValue={item?.ordem || item?.order || ""}
+                />
+              </>
+            )}
+
             {(type === "certificates" || type === "education") && (
               <>
-                <input name="title" placeholder="Título" defaultValue={item?.title || ""} required />
-                <input name="instituicao" placeholder="Instituição" defaultValue={item?.instituicao || ""} required />
+                <div className="admin-form-row">
+                  <input
+                    name="title"
+                    placeholder="Titulo (PT)"
+                    defaultValue={item?.title || ""}
+                    required={type === "education" || isEditing}
+                  />
+                  <input name="titleEn" placeholder="Title (EN)" defaultValue={item?.titleEn || ""} />
+                </div>
                 {type === "certificates" && (
+                  <>
+                    <div className="admin-form-row">
+                      <select name="skillId" defaultValue={item?.skillId || ""}>
+                        <option value="">Outros / Other</option>
+                        {(data.skills || []).map((skill) => (
+                          <option key={skill.id} value={skill.id}>{skill.name}</option>
+                        ))}
+                      </select>
+                      <input name="instituicao" placeholder="Instituicao" defaultValue={item?.instituicao || ""} />
+                    </div>
+                    <textarea name="description" placeholder="Descricao do certificado (PT)" defaultValue={item?.description || ""} />
+                    <textarea name="descriptionEn" placeholder="Certificate description (EN)" defaultValue={item?.descriptionEn || ""} />
+                  </>
+                )}
+                {type === "education" && (
+                  <input name="instituicao" placeholder="Instituicao" defaultValue={item?.instituicao || ""} required />
+                )}
+                {type === "certificates" ? (
                   <div className="admin-form-row">
-                    <input name="url" placeholder="URL do certificado" defaultValue={item?.url || item?.logoUrl || ""} />
+                    <input
+                      name="url"
+                      placeholder="URL do certificado (PDF, imagem ou link)"
+                      defaultValue={item?.url || item?.fileUrl || item?.imageUrl || item?.logoUrl || ""}
+                    />
                     <input
                       name="ordem"
                       type="number"
@@ -525,9 +678,28 @@ function AdminPanel({ onClose }) {
                       defaultValue={item?.ordem || item?.order || ""}
                     />
                   </div>
+                ) : (
+                  <input
+                    name="url"
+                    placeholder="URL do PDF da formacao"
+                    defaultValue={item?.url || item?.fileUrl || item?.imageUrl || item?.logoUrl || ""}
+                  />
                 )}
+                <label className="admin-file-field">
+                  <span>
+                    {type === "certificates" && !isEditing
+                      ? "Arquivos dos certificados (selecao multipla)"
+                      : type === "certificates" ? "Arquivo do certificado" : "PDF da formacao"}
+                  </span>
+                  <input
+                    name="certificateFile"
+                    type="file"
+                    accept={type === "certificates" ? "application/pdf,image/jpeg,image/png,image/webp" : "application/pdf"}
+                    multiple={type === "certificates" && !isEditing}
+                  />
+                </label>
                 <div className="admin-form-row">
-                  <input name="dataInicio" type="date" defaultValue={toInputDate(item?.dataInicio)} required />
+                  <input name="dataInicio" type="date" defaultValue={toInputDate(item?.dataInicio)} required={type === "education"} />
                   <input
                     name="dataFinal"
                     type="date"
