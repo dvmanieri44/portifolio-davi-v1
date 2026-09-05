@@ -1,0 +1,10 @@
+{
+  "name": "davi-manieri-portfolio",
+  "private": true,
+  "scripts": {
+    "build": "esbuild ./sections.jsx ./app.jsx --outdir=./js/build --loader:.jsx=jsx --format=iife --bundle --minify --sourcemap && node ./scripts/build-site.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.9"
+  }
+}

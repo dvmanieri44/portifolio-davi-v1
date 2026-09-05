@@ -8,8 +8,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "fontMode": "editorial",
   "density": "regular",
   "grainOn": true,
-  "scanOn": true,
-  "cursorOn": true,
+  "scanOn": false,
+  "cursorOn": false,
   "dark": true
 }/*EDITMODE-END*/;
 
@@ -42,7 +42,7 @@ const ACCENT_OPTIONS = [
   "#fbbf24", // amber
 ];
 
-const SECTION_IDS = ["hero", "education", "experience", "manifesto", "projects", "youtube", "contact"];
+const SECTION_IDS = ["hero", "projects", "experience", "manifesto", "education", "contact"];
 
 function useActiveSection(ids) {
   const [active, setActive] = useState(ids[0]);
@@ -63,14 +63,13 @@ function useActiveSection(ids) {
 }
 
 function App() {
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [splashGone, setSplashGone] = useState(false);
+  const t = TWEAK_DEFAULTS;
   const [lang, setLang] = useState(() => {
     const saved = window.localStorage?.getItem("portfolio-lang");
-    return saved === "en" ? "en" : "pt";
+    if (saved === "pt" || saved === "en") return saved;
+    return navigator.language?.toLowerCase().startsWith("pt") ? "pt" : "en";
   });
   const [dataVersion, setDataVersion] = useState(0);
-  const [adminOpen, setAdminOpen] = useState(false);
   const active = useActiveSection(SECTION_IDS);
   const copy = window.getPortfolioCopy?.(lang) || window.PORTFOLIO_COPY.pt;
   const sections = copy.sections || SECTION_IDS.map((id) => ({ id, label: id.toUpperCase() }));
@@ -88,26 +87,10 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!splashGone || !window.location.hash) return;
+    if (!window.location.hash) return;
     const id = decodeURIComponent(window.location.hash.slice(1));
     window.requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
-  }, [splashGone]);
-
-  useEffect(() => {
-    let clicks = 0;
-    const footer = document.querySelector(".footer");
-    if (!footer) return;
-    const onClick = () => {
-      clicks += 1;
-      if (clicks < 5) return;
-      clicks = 0;
-      const answer = window.prompt(copy.adminPromptPassword);
-      if (answer === "2040") setAdminOpen(true);
-      else if (answer !== null) window.alert(copy.adminWrongPassword);
-    };
-    footer.addEventListener("click", onClick);
-    return () => footer.removeEventListener("click", onClick);
-  }, [dataVersion, copy.adminPromptPassword, copy.adminWrongPassword]);
+  }, []);
 
   // Apply token CSS vars from tweaks
   useEffect(() => {
@@ -147,16 +130,12 @@ function App() {
     document.body.dataset.theme = t.dark ? "dark" : "light";
     if (t.dark) document.body.removeAttribute("data-theme");
 
-    document.body.style.cursor = t.cursorOn ? "none" : "auto";
+    document.body.style.cursor = "auto";
   }, [t]);
 
   return (
     <>
-      {!splashGone && <Splash lang={lang} onDone={() => setSplashGone(true)} />}
       <span className="fx-grain" />
-      <span className="fx-scan" />
-      {t.cursorOn && <CustomCursor />}
-      <ScrollProgress />
 
       <div className="app">
         <Nav
@@ -165,66 +144,16 @@ function App() {
           lang={lang}
           onLang={setLang}
         />
-        <SectionRail sections={sections} active={active} />
-
         <main>
           <Hero lang={lang} />
-          <Learning lang={lang} />
+          <Projects lang={lang} />
           <Experience lang={lang} />
           <Manifesto lang={lang} />
-          <Projects lang={lang} />
-          <YouTubeSection lang={lang} />
+          <Learning lang={lang} />
           <Contact lang={lang} />
         </main>
 
         <Footer lang={lang} />
-        {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
-
-        <TweaksPanel title="Tweaks">
-          <TweakSection label="Identidade" />
-          <TweakColor
-            label="Accent"
-            value={t.accent}
-            options={ACCENT_OPTIONS}
-            onChange={(v) => setTweak("accent", v)}
-          />
-          <TweakRadio
-            label="Tipografia"
-            value={t.fontMode}
-            options={Object.keys(FONT_PRESETS)}
-            onChange={(v) => setTweak("fontMode", v)}
-          />
-
-          <TweakSection label="Layout" />
-          <TweakRadio
-            label="Densidade"
-            value={t.density}
-            options={["compact", "regular", "comfy"]}
-            onChange={(v) => setTweak("density", v)}
-          />
-          <TweakToggle
-            label="Dark mode"
-            value={t.dark}
-            onChange={(v) => setTweak("dark", v)}
-          />
-
-          <TweakSection label="Efeitos" />
-          <TweakToggle
-            label="Grain"
-            value={t.grainOn}
-            onChange={(v) => setTweak("grainOn", v)}
-          />
-          <TweakToggle
-            label="Scanlines"
-            value={t.scanOn}
-            onChange={(v) => setTweak("scanOn", v)}
-          />
-          <TweakToggle
-            label="Cursor custom"
-            value={t.cursorOn}
-            onChange={(v) => setTweak("cursorOn", v)}
-          />
-        </TweaksPanel>
       </div>
     </>
   );

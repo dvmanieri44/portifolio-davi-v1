@@ -1,25 +1,13 @@
-import { initFirebase, initFirebaseStorage } from "./firebase.js";
+import { initFirebase } from "./firebase.js";
 import {
-  addDoc,
   collection,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
-  setDoc,
-  updateDoc,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import {
-  getDownloadURL,
-  ref as storageRef,
-  uploadBytes,
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
 const db = initFirebase();
-const storage = initFirebaseStorage();
 const base = window.PORTFOLIO_DATA;
-const CERTIFICATE_FILE_MAX_BYTES = 10 * 1024 * 1024;
-const CERTIFICATE_FILE_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 
 function toDate(value) {
   if (!value) return null;
@@ -141,36 +129,6 @@ function normalizeSkill(item) {
   };
 }
 
-function sanitizeStorageName(name) {
-  const fallback = "certificado";
-  const baseName = String(name || fallback)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9._-]+/gi, "-")
-    .replace(/^-+|-+$/g, "")
-    .toLowerCase();
-  return baseName || fallback;
-}
-
-function buildCertificateFilePath(file, certificateId) {
-  const docId = certificateId || crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  return `certificates/${docId}/${Date.now()}-${sanitizeStorageName(file.name)}`;
-}
-
-async function uploadCertificateFile(file, certificateId) {
-  if (!file || !file.size) return "";
-  if (!CERTIFICATE_FILE_TYPES.has(file.type)) {
-    throw new Error("Use um arquivo PDF, JPG, PNG ou WebP.");
-  }
-  if (file.size > CERTIFICATE_FILE_MAX_BYTES) {
-    throw new Error("O arquivo precisa ter ate 10 MB.");
-  }
-
-  const fileRef = storageRef(storage, buildCertificateFilePath(file, certificateId));
-  await uploadBytes(fileRef, file, { contentType: file.type });
-  return getDownloadURL(fileRef);
-}
-
 async function fetchCollection(name) {
   const snapshot = await getDocs(collection(db, name));
   return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
@@ -227,6 +185,12 @@ async function refreshPortfolioData() {
     .map(normalizeCertificate);
   const orderedSkills = skills.sort(compareByOrder).map(normalizeSkill);
 
+  const publishedProjects = orderedProjects.length ? orderedProjects : base.projects;
+  const publishedExperiences = orderedExperiences.length ? orderedExperiences : base.experiences;
+  const publishedEducation = education.length ? education : base.education;
+  const publishedCertificates = certs.length ? certs : base.certificates;
+  const publishedSkills = orderedSkills.length ? orderedSkills : base.skills;
+
   window.PORTFOLIO_DATA = {
     ...base,
     identity: {
@@ -234,48 +198,19 @@ async function refreshPortfolioData() {
       ...(profile.identity || {}),
       youtube: mergeYoutubeSettings(profile),
     },
-    projects: orderedProjects,
-    experiences: orderedExperiences,
-    education,
-    certificates: certs,
-    skills: orderedSkills,
+    projects: publishedProjects,
+    experiences: publishedExperiences,
+    education: publishedEducation,
+    certificates: publishedCertificates,
+    skills: publishedSkills,
     summary: {
       ...base.summary,
-      totalProjects: orderedProjects.length,
-      totalCerts: certs.length + education.length,
+      totalProjects: publishedProjects.length,
+      totalCerts: publishedCertificates.length,
     },
   };
   window.dispatchEvent(new CustomEvent("portfolio-data-ready"));
 }
-
-window.PORTFOLIO_ADMIN = {
-  refresh: refreshPortfolioData,
-  async create(type, payload) {
-    await addDoc(collection(db, type), payload);
-    await refreshPortfolioData();
-  },
-  async createMany(type, payloads) {
-    const results = await Promise.allSettled(
-      payloads.map((payload) => addDoc(collection(db, type), payload)),
-    );
-    await refreshPortfolioData();
-    return results;
-  },
-  async update(type, id, payload) {
-    await updateDoc(doc(db, type, id), payload);
-    await refreshPortfolioData();
-  },
-  async remove(type, id) {
-    await deleteDoc(doc(db, type, id));
-    await refreshPortfolioData();
-  },
-  async saveProfile(payload) {
-    await setDoc(doc(db, "settings", "profile"), payload, { merge: true });
-    await refreshPortfolioData();
-  },
-  uploadCertificateFile,
-  uploadCertificateImage: uploadCertificateFile,
-};
 
 refreshPortfolioData().catch((error) => {
   console.error("Falha ao carregar dados do Firestore.", error);

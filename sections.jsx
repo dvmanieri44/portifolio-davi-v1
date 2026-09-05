@@ -753,73 +753,70 @@ function AuroraPhone({ stageRef, phoneRef, shadowRef, lang }) {
 function Hero({ lang = "pt" }) {
   const data = getData(lang);
   const copy = getCopy(lang);
-  const refs = useHeroExperience(data.identity.name);
   const [firstName = "", ...restNameParts] = data.identity.name.split(" ");
   const lastName = restNameParts.join(" ");
 
   return (
-    <section id="hero" className="hero" data-screen-label="01 Hero" ref={refs.rootRef}>
-      <canvas className="hero-particles" ref={refs.bgRef} aria-hidden="true" />
+    <section id="hero" className="hero hero--focused" data-screen-label="01 Hero">
       <div className="hero-vignette" aria-hidden="true" />
-      <div className="hero-content" ref={refs.contentRef}>
+      <div className="hero-content">
         <div className="hero-left">
           <div className="hero-eyebrow">
             <span className="hero-eyebrow-line" />
             {copy.heroEyebrow}
           </div>
 
-          <div className="hero-name" ref={refs.nameWrapRef}>
-            <h1 className="hero-name-fallback">
-              <span>{firstName}</span>
-              <span><em>{lastName.charAt(0)}</em>{lastName.slice(1)}</span>
-            </h1>
-            <canvas className="hero-name-canvas" ref={refs.nameRef} aria-hidden="true" />
-          </div>
+          <h1 className="hero-heading">
+            <span>{firstName}</span>
+            <span><em>{lastName.charAt(0)}</em>{lastName.slice(1)}</span>
+          </h1>
 
           <div className="hero-role">
             <span className="hero-role-pulse" />
             {copy.heroRole}
           </div>
 
+          <p className="hero-intro">{copy.heroIntro}</p>
+          <p className="hero-location">{copy.heroLocation}</p>
+
           <div className="hero-cta-row">
             <a href="#projects" className="btn">
               <span>{copy.heroPrimaryCta}</span>
               <span className="arrow">↓</span>
             </a>
-            <a href="#contact" className="btn btn--ghost">
+            <a href={data.identity.resume} className="btn btn--ghost" target="_blank" rel="noopener noreferrer">
               <span>{copy.heroSecondaryCta}</span>
               <span className="arrow">↗</span>
             </a>
+            <a href="#contact" className="hero-contact-link">{copy.heroContactCta} ↗</a>
           </div>
         </div>
 
         <div className="hero-right">
-          <AuroraPhone
-            lang={lang}
-            stageRef={refs.stageRef}
-            phoneRef={refs.phoneRef}
-            shadowRef={refs.shadowRef}
-          />
+          <article className="hero-proof-card">
+            <span className="hero-proof-label">{copy.heroProofLabel}</span>
+            <h2>{copy.heroProofTitle}</h2>
+            <p>{copy.heroProofBody}</p>
+            <div className="hero-proof-footer">
+              <span>{copy.heroProofEducation}</span>
+              <span>{data.identity.status}</span>
+            </div>
+          </article>
           <div className="hero-stats">
             <div className="hero-stat">
-              <span className="hero-stat-num">{data.summary.totalCerts}<em>+</em></span>
-              <span className="hero-stat-label">{copy.heroStats.certificates}</span>
-            </div>
-            <div className="hero-stat">
-              <span className="hero-stat-num">{data.projects.length}</span>
+              <span className="hero-stat-num">{String(data.projects.length).padStart(2, "0")}</span>
               <span className="hero-stat-label">{copy.heroStats.projects}</span>
             </div>
             <div className="hero-stat">
-              <span className="hero-stat-num">{data.summary.yearsCoding}<em>{copy.heroStats.yearSuffix}</em></span>
-              <span className="hero-stat-label">{copy.heroStats.coding}</span>
+              <span className="hero-stat-num">{data.summary.yearsProfessional}<em>+</em></span>
+              <span className="hero-stat-label">{copy.heroStats.experience}</span>
+            </div>
+            <div className="hero-stat">
+              <span className="hero-stat-num hero-stat-word">Android</span>
+              <span className="hero-stat-label">{copy.heroStats.focus}</span>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="hero-scroll">
-        <span>SCROLL</span>
-        <span className="hero-scroll-line" />
       </div>
     </section>
   );
@@ -840,7 +837,7 @@ function Manifesto({ lang = "pt" }) {
         <div className="section-meta">{copy.manifestoMeta}</div>
       </div>
 
-      <div className="manifesto-wrap" ref={ref}>
+      <div className="manifesto-wrap manifesto-wrap--focused" ref={ref}>
         <div>
           <div className={`manifesto-tag reveal ${seen ? "is-in" : ""}`}>{copy.manifestoTag}</div>
           <div className={`manifesto reveal reveal-delay-1 ${seen ? "is-in" : ""}`}>
@@ -849,8 +846,13 @@ function Manifesto({ lang = "pt" }) {
             ))}
           </div>
         </div>
-        <div className={`reveal reveal-delay-2 ${seen ? "is-in" : ""}`}>
-          <Terminal lang={lang} />
+        <div className={`about-facts reveal reveal-delay-2 ${seen ? "is-in" : ""}`}>
+          {(copy.aboutFacts || []).map((fact, index) => (
+            <div className="about-fact" key={fact}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{fact}</strong>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -999,15 +1001,6 @@ function Learning({ lang = "pt" }) {
     }
     return result;
   }, [skills, certificates, copy.skillsOtherName, copy.skillsOtherDescription]);
-  const marqueeItems = useMemo(() => {
-    const seen = new Set();
-    return (copy.stackRows || []).flat().filter((item) => {
-      const key = String(item).replace(/<[^>]+>/g, "").trim().toUpperCase();
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [copy.stackRows]);
   const [openId, setOpenId] = useState(null);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
   const sectionNumber = getSectionNumber(copy, "education");
@@ -1028,82 +1021,82 @@ function Learning({ lang = "pt" }) {
         </div>
       </div>
 
-      <div className="learning-formal">
-        <div className="learning-step-head">
-          <div className="learning-step-label"><span>{sectionNumber}.1</span> / {copy.educationLabel}</div>
-          <div className="learning-step-meta">{data.education.length}{copy.educationMetaSuffix}</div>
-        </div>
-        <div className="education education-grid">
-          {data.education.map((education, index) => {
-            const href = getCertificateAccessHref(education);
-            return (
-              <article key={education.id || index} className={`edu-card ${education.current ? "is-current" : ""}`}>
-                <div className="edu-kind">
-                  {education.kind === "graduation" ? copy.graduation : copy.technical}
-                  {education.current ? ` · ${copy.inProgress}` : ""}
-                </div>
-                <h3 className="edu-title">{education.title}</h3>
-                <div className="edu-org">{education.org}</div>
-                <div className="edu-period">{education.period}</div>
-                {href && (
-                  <a className="cert-link edu-link" href={href} target="_blank" rel="noopener">
-                    {copy.certificateLink || "OPEN"}
-                  </a>
-                )}
-              </article>
-            );
-          })}
-        </div>
-      </div>
-
-      <div id="skills" className="learning-skills-anchor">
-        <div className="learning-skills-head">
+      <div className="learning-layout">
+        <div className="learning-formal">
           <div className="learning-step-head">
-            <div className="learning-step-label"><span>{sectionNumber}.2</span> / SKILLS</div>
-            <div className="learning-step-meta">{copy.stackMeta}</div>
+            <div className="learning-step-label"><span>{sectionNumber}.1</span> / {copy.educationLabel}</div>
+            <div className="learning-step-meta">{data.education.length}{copy.educationMetaSuffix}</div>
           </div>
-          <h3 className="learning-skills-title">{copy.skillsTitle[0]}<em>{copy.skillsTitle[1]}</em>{copy.skillsTitle[2]}</h3>
+          <div className="education education-grid">
+            {data.education.map((education, index) => {
+              const href = getCertificateAccessHref(education);
+              return (
+                <article key={education.id || index} className={`edu-card ${education.current ? "is-current" : ""}`}>
+                  <div className="edu-kind">
+                    {education.kind === "graduation" ? copy.graduation : copy.technical}
+                    {education.current ? ` · ${copy.inProgress}` : ""}
+                  </div>
+                  <h3 className="edu-title">{education.title}</h3>
+                  <div className="edu-org">{education.org}</div>
+                  <div className="edu-period">{education.period}</div>
+                  {href && (
+                    <a className="cert-link edu-link" href={href} target="_blank" rel="noopener">
+                      {copy.certificateLink || "OPEN"}
+                    </a>
+                  )}
+                </article>
+              );
+            })}
+          </div>
         </div>
 
-        <MarqueeRow items={marqueeItems} dur={54} />
+        <div id="skills" className="learning-skills-anchor">
+          <div className="learning-skills-head">
+            <div className="learning-step-head">
+              <div className="learning-step-label"><span>{sectionNumber}.2</span> / SKILLS</div>
+              <div className="learning-step-meta">{copy.stackMeta}</div>
+            </div>
+            <h3 className="learning-skills-title">{copy.skillsTitle[0]}<em>{copy.skillsTitle[1]}</em>{copy.skillsTitle[2]}</h3>
+          </div>
 
-        <div className="skills-accordion">
-          {groups.map((group, index) => {
-            const isOpen = openId === group.id;
-            const countLabel = group.certificates.length === 1 ? copy.skillsCertificateSingular : copy.skillsCertificatePlural;
-            return (
-              <article key={group.id} className={`skill-group ${isOpen ? "is-open" : ""}`}>
-                <button
-                  type="button"
-                  className="skill-group-trigger"
-                  onClick={() => setOpenId(isOpen ? null : group.id)}
-                  aria-expanded={isOpen}
-                  aria-controls={`skill-panel-${index}`}
-                >
-                  <span className="skill-group-index">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="skill-group-main">
-                    <strong>{group.name}</strong>
-                    {group.description && <span>{group.description}</span>}
-                  </span>
-                  <span className="skill-group-count">{group.certificates.length} {countLabel}</span>
-                  <span className="skill-group-icon" aria-hidden="true">+</span>
-                </button>
-                {isOpen && (
-                  <div id={`skill-panel-${index}`} className="skill-group-panel">
-                    {group.certificates.length ? (
-                      <div className="skill-certificates-grid">
-                        {group.certificates.map((certificate) => (
-                          <CertificateCard key={certificate.id || certificate.title} certificate={certificate} copy={copy} onOpen={setSelectedCertificate} />
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="skill-group-empty">0 {copy.skillsCertificatePlural}</p>
-                    )}
-                  </div>
-                )}
-              </article>
-            );
-          })}
+          <div className="skills-accordion">
+            {groups.map((group, index) => {
+              const isOpen = openId === group.id;
+              const countLabel = group.certificates.length === 1 ? copy.skillsCertificateSingular : copy.skillsCertificatePlural;
+              return (
+                <article key={group.id} className={`skill-group ${isOpen ? "is-open" : ""}`}>
+                  <button
+                    type="button"
+                    className="skill-group-trigger"
+                    onClick={() => setOpenId(isOpen ? null : group.id)}
+                    aria-expanded={isOpen}
+                    aria-controls={`skill-panel-${index}`}
+                  >
+                    <span className="skill-group-index">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="skill-group-main">
+                      <strong>{group.name}</strong>
+                      {group.description && <span>{group.description}</span>}
+                    </span>
+                    <span className="skill-group-count">{group.certificates.length} {countLabel}</span>
+                    <span className="skill-group-icon" aria-hidden="true">+</span>
+                  </button>
+                  {isOpen && (
+                    <div id={`skill-panel-${index}`} className="skill-group-panel">
+                      {group.certificates.length ? (
+                        <div className="skill-certificates-grid">
+                          {group.certificates.map((certificate) => (
+                            <CertificateCard key={certificate.id || certificate.title} certificate={certificate} copy={copy} onOpen={setSelectedCertificate} />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="skill-group-empty">0 {copy.skillsCertificatePlural}</p>
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -1115,36 +1108,11 @@ function Learning({ lang = "pt" }) {
 // ─── Projects ───────────────────────────────────────────────
 
 function ProjectCard({ p, copy }) {
-  const ref = useRef(null);
-  const onMove = (e) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    const mx = ((e.clientX - rect.left) / rect.width) * 100;
-    const my = ((e.clientY - rect.top) / rect.height) * 100;
-    ref.current.style.setProperty("--mx", `${mx}%`);
-    ref.current.style.setProperty("--my", `${my}%`);
-
-    // subtle 3D tilt
-    const tiltX = (my - 50) / 25;
-    const tiltY = (50 - mx) / 25;
-    ref.current.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-  };
-  const onLeave = () => {
-    if (ref.current) ref.current.style.transform = "perspective(1000px) rotateX(0) rotateY(0)";
-  };
-
-  // Stylize the name: italicize the first letter
   const first = p.name.charAt(0);
   const rest = p.name.slice(1);
 
   return (
-    <article
-      ref={ref}
-      className="project-card"
-      data-status={p.status}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-    >
+    <article className="project-card" data-status={p.status}>
       <div className="project-card-top">
         <span className="project-card-index">{p.index}</span>
         <span className="project-card-status">
@@ -1157,6 +1125,7 @@ function ProjectCard({ p, copy }) {
         <em>{first}</em>{rest}
       </h3>
 
+      <p className="project-card-kicker">{p.tagline}</p>
       <p className="project-card-tagline">{p.description}</p>
 
       <div className="project-card-foot">
@@ -1165,10 +1134,12 @@ function ProjectCard({ p, copy }) {
             <span key={s} className="project-stack-tag">{s}</span>
           ))}
         </div>
-        <a className="project-card-link" href="#" onClick={(e) => e.preventDefault()}>
-          <span>{copy.projectLink}</span>
-          <span className="arrow">↗</span>
-        </a>
+        {p.url && (
+          <a className="project-card-link" href={p.url} target="_blank" rel="noopener noreferrer">
+            <span>{copy.projectLink}</span>
+            <span className="arrow">↗</span>
+          </a>
+        )}
       </div>
     </article>
   );
@@ -1190,12 +1161,12 @@ function Projects({ lang = "pt" }) {
           {copy.projectsTitle[0]}<em>{copy.projectsTitle[1]}</em><br/>{copy.projectsTitle[2]}
         </h2>
         <div className="section-meta">
-          {data.projects.length} {copy.projectsMetaSuffix}
+          {Math.min(data.projects.length, 3)} {copy.projectsMetaSuffix}
         </div>
       </div>
 
       <div className={`projects-grid reveal ${seen ? "is-in" : ""}`} ref={ref}>
-        {data.projects.map((p) => <ProjectCard key={p.id} p={p} copy={copy} />)}
+        {data.projects.slice(0, 3).map((p) => <ProjectCard key={p.id} p={p} copy={copy} />)}
       </div>
     </section>
   );
@@ -1324,15 +1295,7 @@ function Contact({ lang = "pt" }) {
     label: "www.youtube.com/@Code-Club-y8t",
     href: "https://www.youtube.com/@Code-Club-y8t",
   };
-  const [copied, setCopied] = useState(null);
   const sectionNumber = getSectionNumber(copy, "contact");
-
-  const copyToClipboard = (val, label) => {
-    navigator.clipboard?.writeText(val).then(() => {
-      setCopied(label);
-      setTimeout(() => setCopied(null), 1400);
-    });
-  };
 
   return (
     <section id="contact" className="contact-section" data-screen-label={`${sectionNumber} Contact`}>
@@ -1357,13 +1320,6 @@ function Contact({ lang = "pt" }) {
             <span className="contact-row-label">EMAIL</span>
             <span className="contact-row-value">{data.identity.email}<span className="arrow">↗</span></span>
           </a>
-          <button className="contact-row" onClick={() => copyToClipboard(data.identity.phone, "phone")}>
-            <span className="contact-row-label">{copy.phoneLabel}</span>
-            <span className="contact-row-value">
-              {copied === "phone" ? copy.copied : data.identity.phone}
-              <span className="arrow">⎘</span>
-            </span>
-          </button>
           <a className="contact-row" href={`https://${data.identity.linkedin}`} target="_blank" rel="noopener">
             <span className="contact-row-label">LINKEDIN</span>
             <span className="contact-row-value">{data.identity.linkedin}<span className="arrow">↗</span></span>
@@ -1371,6 +1327,10 @@ function Contact({ lang = "pt" }) {
           <a className="contact-row" href={`https://${data.identity.github}`} target="_blank" rel="noopener">
             <span className="contact-row-label">GITHUB</span>
             <span className="contact-row-value">{data.identity.github}<span className="arrow">↗</span></span>
+          </a>
+          <a className="contact-row" href={data.identity.resume} target="_blank" rel="noopener">
+            <span className="contact-row-label">{copy.resumeLabel}</span>
+            <span className="contact-row-value">PDF<span className="arrow">↗</span></span>
           </a>
           <a className="contact-row" href={youtube.href} target="_blank" rel="noopener">
             <span className="contact-row-label">YOUTUBE</span>
@@ -1435,19 +1395,14 @@ function SectionRail({ sections, active }) {
 // ─── Export everything to window ────────────────────────────
 
 Object.assign(window, {
-  CustomCursor,
-  Splash,
   Nav,
   Hero,
   Manifesto,
   Learning,
   Projects,
-  YouTubeSection,
   Experience,
   Contact,
   Footer,
-  ScrollProgress,
-  SectionRail,
   useReveal,
   useClock,
 });

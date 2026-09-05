@@ -1,32 +1,24 @@
-# Portfolio - Davi Manieri
+# Davi Manieri — Portfolio
 
-Site de portfolio pessoal com secoes de formacao, experiencia, skills com certificados, projetos e contato. A interface suporta troca de idioma e tema, com conteudo carregado do Firebase.
+Portfolio profissional bilíngue com foco em vagas internacionais de desenvolvimento Android.
 
-## Tecnologias
-- HTML, CSS e JavaScript
-- Firebase (Firestore)
-- anime.js (animacoes)
+## Conteúdo
 
-## Estrutura do projeto
-- `index.html`: pagina principal
-- `style.css` e `css/`: estilos
-- `js/`: scripts (i18n, menu, animacoes, app)
-- `img/`: imagens e assets
+- Projetos públicos reais e links diretos para os repositórios
+- Experiência profissional
+- Formação, competências e certificados
+- Currículo, LinkedIn, GitHub e contato
+- Fallback estático para evitar uma página vazia quando serviços externos estiverem indisponíveis
 
-## Como executar
-Opcao recomendada:
-1. Rode um servidor local (ex.: Live Server no VS Code).
-2. Acesse `http://localhost` no navegador.
+## Desenvolvimento
 
-Observacao:
-- Evite abrir `index.html` diretamente via `file://`, porque isso pode impedir ou dificultar o carregamento do Firebase no navegador.
+```bash
+npm install
+npm run build
+```
 
+O build transforma os arquivos JSX em JavaScript pronto para produção dentro de `js/build/`. Para testar a integração com o Firebase, sirva a pasta por HTTP com um servidor local; abrir `index.html` diretamente também exibe o conteúdo principal, usando os dados locais.
 
-## Idioma e tema
-- Idioma: alternancia no seletor no topo.
-- Tema: alternancia no seletor no topo (claro/escuro).
+## Publicação
 
-## Observacoes
-- O layout e responsivo para desktop e mobile.
-- O favicon esta em `img/iconSite.png`.
-- Não permito usar o código do meu site
+O site é compatível com hospedagem estática, incluindo GitHub Pages. Sempre execute `npm run build` antes de publicar mudanças em `app.jsx` ou `sections.jsx`.
