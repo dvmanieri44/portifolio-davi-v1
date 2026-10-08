@@ -1,6 +1,6 @@
 # Davi Manieri — Portfólio
 
-Site estático em HTML, CSS e JavaScript. Reúne três projetos, experiência profissional, graduação, curso técnico, Inglês na inFlux e contatos, em um layout responsivo azul escuro e branco.
+Site estático em HTML, CSS e JavaScript, disponível em português, inglês e espanhol. Reúne três projetos, experiência profissional, graduação, curso técnico, Inglês na inFlux e contatos, em um layout responsivo azul escuro e branco.
 
 ## Desenvolvimento
 
@@ -27,8 +27,9 @@ Também é possível abrir `index.html` diretamente. A cópia de e-mail depende 
 | --- | --- |
 | `index.html` | Conteúdo, contatos, links, metadados e marcação acessível. |
 | `styles.css` | Cores, tipografia, layout responsivo e ilustrações dos projetos. |
-| `js/main.js` | Movimento do retrato, cópia de e-mail e atualização do ano. |
-| `img/favicon.svg` | Monograma “dm.” para a aba do navegador. |
+| `js/main.js` | Troca de idioma, preferência local, cópia de e-mail e atualização do ano. |
+| `js/translations.js` | Textos em inglês e espanhol, incluindo metadados e acessibilidade. |
+| `img/favicon.svg` | Foto original incorporada em SVG, enquadrada no rosto para a aba do navegador. |
 | `img/davi-manieri.jpg` | Foto original, imagem social e ícone de atalho. |
 | `img/davi-portrait.png` | Retrato com fundo transparente e camisa azul. |
 | `scripts/assets.mjs` | Lista única de arquivos públicos e seus tipos de conteúdo. |
@@ -46,7 +47,17 @@ Edite nome, empresa, projetos, experiência, formação e contatos em `index.htm
 
 As cores, fontes e margens ficam nas variáveis no início de `styles.css`. Os ajustes responsivos ficam no final do arquivo. Os textos descritivos têm pelo menos 18 px e os projetos usam ilustrações em CSS e SVG.
 
-O retrato principal usa `img/davi-portrait.png`; seu histórico de edição está em `docs/portrait.md`. Ao substituir uma imagem por outra com dimensões diferentes, ajuste também os atributos `width` e `height` no HTML. O favicon usa `img/favicon.svg`.
+O retrato principal usa `img/davi-portrait.png` em uma composição sem moldura: foto em preto e branco, fundo azul e nome sobreposto à base. Com mouse, a foto recupera as cores ao passar o ponteiro. No celular, retrato e nome aparecem antes da apresentação. Os efeitos são feitos em CSS; seu histórico de edição está em `docs/portrait.md`. O favicon usa `img/favicon.svg`, que incorpora a foto original e enquadra o rosto; a foto JPEG também serve como alternativa e ícone de atalho.
+
+## Idiomas
+
+O português é o idioma inicial e sua fonte é `index.html`. Os atributos `data-i18n` identificam os textos traduzíveis; `data-i18n-aria-label`, `data-i18n-alt` e `data-i18n-content` identificam rótulos acessíveis, descrições de imagens e metadados. Ao editar um texto, atualize a mesma chave nos dois idiomas de `js/translations.js`. Nomes próprios, tecnologias e endereços de contato permanecem iguais.
+
+O seletor atualiza o conteúdo e o atributo `lang` sem recarregar a página. A preferência é salva na chave `portfolio-language` do `localStorage`. Caso o navegador bloqueie o armazenamento, a troca continua funcionando durante a visita. As mensagens de cópia de e-mail também são traduzidas.
+
+Os scripts são carregados localmente e funcionam ao abrir `index.html` diretamente. Sem JavaScript, o conteúdo continua disponível em português e o seletor fica oculto. A tradução dos metadados acontece no navegador; não há páginas separadas por idioma para indexação.
+
+## Arquivos públicos
 
 Ao adicionar ou remover um arquivo público, atualize `scripts/assets.mjs` e as referências no HTML ou CSS. O build e o servidor local usam essa mesma lista. Documentação, configurações locais e scripts de manutenção não são publicados.
 
@@ -72,5 +83,7 @@ Publique o conteúdo de `dist/client` em uma hospedagem estática. Os caminhos r
 - Navegar por teclado e verificar os focos visíveis e o link para pular ao conteúdo.
 - Conferir os três repositórios, os contatos e as âncoras de navegação.
 - Testar a cópia de e-mail e o feedback quando o navegador negar acesso.
+- Alternar entre português, inglês e espanhol; conferir títulos, navegação, metadados e mensagens de cópia.
+- Recarregar a página para conferir a preferência salva e testar a troca com armazenamento bloqueado.
 - Confirmar que o conteúdo permanece visível sem JavaScript.
-- Verificar a preferência de movimento reduzido, que desativa rolagem suave, transições e a inclinação interativa do retrato.
+- Verificar a preferência de movimento reduzido, que desativa rolagem suave e transições.

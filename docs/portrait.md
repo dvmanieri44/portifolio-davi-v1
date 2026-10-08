@@ -5,7 +5,8 @@ Registro da origem e das duas edições do arquivo usado no site. A imagem final
 - Original: `img/davi-manieri.jpg`, fornecido pelo proprietário do portfólio e preservado sem alterações.
 - Resultado: `img/davi-portrait.png`, PNG com transparência real, 1254 × 1254 px.
 - Ferramenta: imagegen integrada ao Codex; duas edições sequenciais.
-- Uso: retrato principal. A moldura, o movimento e os elementos decorativos são feitos em CSS.
+- Uso: retrato recortado integrado ao fundo azul, com nome sobreposto à base, aparência em preto e branco e retorno das cores ao passar o mouse. O degradê de transparência evita um corte reto no tronco. A apresentação fica abaixo da foto no celular. Esses efeitos são feitos em CSS e não alteram o arquivo da imagem.
+- Favicon: `img/favicon.svg` incorpora o JPEG original em base64 e usa um enquadramento fechado no rosto. O arquivo é independente de imagens externas e mantém os pixels da foto original.
 
 ## Recorte e preparação para exibição ampliada
 
