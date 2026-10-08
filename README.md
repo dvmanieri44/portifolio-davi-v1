@@ -47,7 +47,7 @@ Edite nome, empresa, projetos, experiência, formação e contatos em `index.htm
 
 As cores, fontes e margens ficam nas variáveis no início de `styles.css`. Os ajustes responsivos ficam no final do arquivo. Os textos descritivos têm pelo menos 18 px e os projetos usam ilustrações em CSS e SVG.
 
-O retrato principal usa `img/davi-portrait.png` em uma composição sem moldura: foto em preto e branco, fundo azul e nome sobreposto à base. Com mouse, a foto recupera as cores ao passar o ponteiro. No celular, retrato e nome aparecem antes da apresentação. Os efeitos são feitos em CSS; seu histórico de edição está em `docs/portrait.md`. O favicon usa `img/favicon.svg`, que incorpora a foto original e enquadra o rosto; a foto JPEG também serve como alternativa e ícone de atalho.
+O retrato principal usa `img/davi-portrait.png` em uma composição sem moldura: foto colorida sobre fundo azul e nome sobreposto à base. No celular, retrato e nome aparecem antes da apresentação. O degradê na base é feito em CSS; o histórico de edição da imagem está em `docs/portrait.md`. O favicon usa `img/favicon.svg`, que incorpora a foto original e enquadra o rosto; a foto JPEG também serve como alternativa e ícone de atalho.
 
 ## Idiomas
 

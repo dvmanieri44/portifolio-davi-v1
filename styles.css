@@ -64,11 +64,8 @@ h1 { position: absolute; z-index: 4; left: -.055em; bottom: 24px; margin: 0; fon
 .button-link:hover { color: var(--ice); border-color: var(--ice); }
 .button-link:hover .button-arrow { transform: translate(3px, -3px); }
 .portrait-composition { position: absolute; z-index: 1; right: -4%; bottom: 38px; width: min(61vw, calc(100svh - 240px)); max-width: 1020px; min-width: 510px; }
-.portrait { display: block; width: 100%; height: auto; filter: grayscale(1) contrast(1.06); mask-image: linear-gradient(#000 65%, transparent 99%); transition: filter 650ms ease; }
+.portrait { display: block; width: 100%; height: auto; mask-image: linear-gradient(#000 65%, transparent 99%); }
 .hero-bottom { position: relative; z-index: 5; }
-@media (hover: hover) and (pointer: fine) {
-  .portrait-composition:hover .portrait { filter: grayscale(0) contrast(1); }
-}
 .hero-bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; border-top: 1px solid #ffffff24; padding-block: 20px; color: #b8c7dd; font-size: 14px; }
 .hero-bottom a { display: flex; align-items: center; gap: 24px; }
 .scroll-arrow { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #ffffff36; border-radius: 50%; color: white; font-size: 19px; transition: transform 220ms ease; }
