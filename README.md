@@ -1,89 +1,57 @@
-# Davi Manieri — Portfólio
+﻿# Davi Manieri — portfólio
 
-Site estático em HTML, CSS e JavaScript, disponível em português, inglês e espanhol. Reúne três projetos, experiência profissional, graduação, curso técnico, Inglês na inFlux e contatos, em um layout responsivo azul escuro e branco.
+Site estático em português, inglês e espanhol. Apresenta Davi como Software Engineer com especialização Android, experiência full-stack e integração de IA em produção.
 
 ## Desenvolvimento
 
-Requer Node.js 20 ou superior. O projeto usa apenas recursos nativos do Node e do navegador; não é necessário instalar dependências.
-
-```bash
-npm run dev
-```
-
-Abra [http://127.0.0.1:4173](http://127.0.0.1:4173). Recarregue o navegador após editar os arquivos e encerre o servidor com `Ctrl+C`.
-
-Para usar outra porta no PowerShell:
+Requisito: Node.js 20+ (CI em Node.js 24).
 
 ```powershell
-$env:PORT = "4180"
-npm run dev
+npm.cmd run dev
+npm.cmd run build
+npm.cmd run check
+npm.cmd run preview
 ```
 
-Também é possível abrir `index.html` diretamente. A cópia de e-mail depende da disponibilidade da API de clipboard no navegador.
+Desenvolvimento e prévia usam `http://127.0.0.1:4173`. `PORT` permite mudar a porta. `npm run check` exige um build atualizado e verifica páginas, links internos, âncoras, metadados, respostas HTTP e cópia de e-mail nos três idiomas.
 
-## Estrutura
+## Onde editar
 
-| Arquivo | Responsabilidade |
-| --- | --- |
-| `index.html` | Conteúdo, contatos, links, metadados e marcação acessível. |
-| `styles.css` | Cores, tipografia, layout responsivo e ilustrações dos projetos. |
-| `js/main.js` | Troca de idioma, preferência local, cópia de e-mail e atualização do ano. |
-| `js/translations.js` | Textos em inglês e espanhol, incluindo metadados e acessibilidade. |
-| `img/favicon.svg` | Foto original incorporada em SVG, enquadrada no rosto para a aba do navegador. |
-| `img/davi-manieri.jpg` | Foto original, imagem social e ícone de atalho. |
-| `img/davi-portrait.png` | Retrato com fundo transparente e camisa azul. |
-| `scripts/assets.mjs` | Lista única de arquivos públicos e seus tipos de conteúdo. |
-| `scripts/serve.mjs` | Servidor local de desenvolvimento e prévia. |
-| `scripts/build-site.mjs` | Geração de `dist/client` e do adaptador de hospedagem. |
-| `.openai/hosting.json` | Identificação da hospedagem existente. |
+- `scripts/content.mjs`: textos PT/EN/ES, projetos e estudos de caso.
+- `scripts/resume-content.mjs`: conteúdo do currículo em inglês.
+- `scripts/generate-pages.mjs`: templates compartilhados e geração das páginas.
+- `styles.css`: identidade visual e responsividade.
+- `js/main.js`: ano e melhoria opcional de cópia de e-mail.
+- `scripts/assets.mjs`: lista explícita dos arquivos publicados.
 
-O conteúdo funciona sem JavaScript. O site não usa frameworks, fontes externas, banco de dados ou APIs. Firebase aparece apenas no texto sobre a experiência profissional; não há integração com o serviço.
+Execute `npm run generate` após editar o conteúdo. Não edite manualmente `index.html`, `en/`, `es/`, `projects/` ou `sitemap.xml`: são arquivos gerados e versionados para manter compatibilidade com hospedagem estática pela raiz do repositório. O build também os atualiza antes de copiar para `dist/client`.
 
-A origem do retrato e os prompts de edição estão em [docs/portrait.md](docs/portrait.md).
+## Idiomas e navegação
 
-## Atualizar o conteúdo
+Português fica na raiz, inglês em `/en/` e espanhol em `/es/`. Cada idioma tem HTML completo, metadados, canonical e links hreflang. A escolha de idioma é expressa na URL, sem redirecionamento automático ou dependência de localStorage. Links de idioma nos estudos de caso levam ao mesmo projeto traduzido. Todo conteúdo e navegação funcionam sem JavaScript.
 
-Edite nome, empresa, projetos, experiência, formação e contatos em `index.html`. Ao alterar contatos, atualize o texto visível e os respectivos `href`. O botão de copiar lê o endereço exibido no link de e-mail.
+Os projetos principais são Clareza e Lectio Divina. ERP e Dopamine Free Launcher aparecem em uma lista secundária. Há estudos de caso de Clareza, Lectio e ERP nos três idiomas. O currículo está em `/en/resume/` e em `output/pdf/davi-manieri-resume-en.pdf`.
 
-As cores, fontes e margens ficam nas variáveis no início de `styles.css`. Os ajustes responsivos ficam no final do arquivo. Os textos descritivos têm pelo menos 18 px e os projetos usam ilustrações em CSS e SVG.
+## Currículo e imagens
 
-O retrato principal usa `img/davi-portrait.png` em uma composição sem moldura: foto colorida sobre fundo azul e nome sobreposto à base. No celular, retrato e nome aparecem antes da apresentação. O degradê na base é feito em CSS; o histórico de edição da imagem está em `docs/portrait.md`. O favicon usa `img/favicon.svg`, que incorpora a foto original e enquadra o rosto; a foto JPEG também serve como alternativa e ícone de atalho.
+O PDF e as imagens otimizadas são versionados; o build normal não exige Python. Para atualizar o currículo, execute primeiro `npm run generate`, depois `python scripts/create-resume.py` em um ambiente com `reportlab` e `pypdf`. Renderize e confira o PDF após mudar seu conteúdo. O script exige uma página e valida texto e links.
 
-## Idiomas
+`python scripts/optimize-images.py` exige Pillow e usa as fontes Segoe UI do Windows. Gera WebP em 480/960 px e um cartão social a partir da foto original, preservada em `img/davi-portrait.png`. A foto original não entra no artefato de publicação. Não há capturas fictícias de aplicativos: as capas dos projetos são ilustrações decorativas.
 
-O português é o idioma inicial e sua fonte é `index.html`. Os atributos `data-i18n` identificam os textos traduzíveis; `data-i18n-aria-label`, `data-i18n-alt` e `data-i18n-content` identificam rótulos acessíveis, descrições de imagens e metadados. Ao editar um texto, atualize a mesma chave nos dois idiomas de `js/translations.js`. Nomes próprios, tecnologias e endereços de contato permanecem iguais.
+## Publicação
 
-O seletor atualiza o conteúdo e o atributo `lang` sem recarregar a página. A preferência é salva na chave `portfolio-language` do `localStorage`. Caso o navegador bloqueie o armazenamento, a troca continua funcionando durante a visita. As mensagens de cópia de e-mail também são traduzidas.
+O endereço canônico é definido em `scripts/content.mjs`. Publique o conteúdo de `dist/client` no GitHub Pages ou em outra hospedagem estática. Os caminhos relativos suportam a subpasta `portifolio-davi-v1`. O sitemap fica em `/portifolio-davi-v1/sitemap.xml`; em GitHub Pages de projeto, um robots.txt nessa subpasta não controla o domínio.
 
-Os scripts são carregados localmente e funcionam ao abrir `index.html` diretamente. Sem JavaScript, o conteúdo continua disponível em português e o seletor fica oculto. A tradução dos metadados acontece no navegador; não há páginas separadas por idioma para indexação.
+`dist/server/index.js` preserva o adaptador da hospedagem existente. A workflow `Verify portfolio` verifica build e integridade, mas não publica o site. Executar build local também não publica.
 
-## Arquivos públicos
+## Conteúdo e evidências
 
-Ao adicionar ou remover um arquivo público, atualize `scripts/assets.mjs` e as referências no HTML ou CSS. O build e o servidor local usam essa mesma lista. Documentação, configurações locais e scripts de manutenção não são publicados.
+A narrativa profissional usa o briefing fornecido pelo autor e os READMEs públicos. São mantidos os anos das duas experiências Tecnomotor; meses, datas da formação e histórico freelance não confirmados foram omitidos. IA em produção é diferenciada de estudos de RAG/LLMs. Coordenação no ERP não é apresentada como cargo formal de gestão. Os exemplos profissionais não identificam sistemas internos, protocolos ou código privado.
 
-Os projetos selecionados são [Lectio Divina](https://github.com/dvmanieri44/lectio-divina), [PremieRpet ERP](https://github.com/dvmanieri44/erp-de-controle-de-estoque) e [Dopamine Free Launcher](https://github.com/dvmanieri44/DopamineFreeLauncher).
+A aplicação Clareza é um link fornecido pelo autor; a operação do Firebase e a disponibilidade dos sites externos não fazem parte do teste local. Os estudos de caso descrevem implementação e validação documentadas, sem inventar métricas de uso ou desempenho.
 
-## Build e publicação
+## Revisão visual e acessibilidade
 
-```bash
-npm run build
-npm run preview
-```
+A implementação inclui semântica, foco visível, link para pular conteúdo, idioma por página, links externos identificados, respeito a movimento reduzido e controles de idioma com 44 px. Os testes estáticos não substituem leitor de tela nem inspeção visual.
 
-O build recria `dist/` a partir dos arquivos listados em `scripts/assets.mjs`. Nunca edite `dist/` manualmente: altere os arquivos de origem e execute o build novamente.
-
-`npm run preview` serve `dist/client` na porta 4173 e também aceita a variável `PORT`. Encerre o servidor de desenvolvimento antes de iniciar a prévia na mesma porta.
-
-Publique o conteúdo de `dist/client` em uma hospedagem estática. Os caminhos relativos também permitem servir o site em uma subpasta, como no GitHub Pages. `dist/server/index.js` mantém o adaptador de assets usado pela hospedagem existente. Executar o build não publica o site.
-
-## Verificação manual
-
-- Executar `npm run build` e verificar o resultado com `npm run preview`.
-- Conferir o layout em celular, tablet e desktop, sem rolagem horizontal.
-- Navegar por teclado e verificar os focos visíveis e o link para pular ao conteúdo.
-- Conferir os três repositórios, os contatos e as âncoras de navegação.
-- Testar a cópia de e-mail e o feedback quando o navegador negar acesso.
-- Alternar entre português, inglês e espanhol; conferir títulos, navegação, metadados e mensagens de cópia.
-- Recarregar a página para conferir a preferência salva e testar a troca com armazenamento bloqueado.
-- Confirmar que o conteúdo permanece visível sem JavaScript.
-- Verificar a preferência de movimento reduzido, que desativa rolagem suave e transições.
+Antes de publicar, conferir em navegador: 320/390/768/1440 px, zoom de 200% e 400%, ausência de rolagem horizontal, teclado, leitor de tela, cópia de e-mail e leitura nos três idiomas. Medir LCP/CLS/INP com ferramentas de navegador. Capturas reais e vídeos dos aplicativos dependem de execução e captura das aplicações; não foram substituídos por mockups.

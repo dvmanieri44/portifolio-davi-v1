@@ -1,8 +1,10 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { publicAssets } from './assets.mjs';
+import { generatePages } from './generate-pages.mjs';
 
 const built = process.argv.includes('--dist');
+if (!built) await generatePages();
 const root = new URL(built ? '../dist/client/' : '../', import.meta.url);
 const port = Number(process.env.PORT || 4173);
 
@@ -15,7 +17,12 @@ const server = createServer(async (request, response) => {
   let path;
   try {
     const pathname = new URL(request.url, 'http://localhost').pathname;
-    path = pathname === '/' ? 'index.html' : pathname.slice(1);
+    path = pathname.slice(1);
+    if (pathname.endsWith('/')) path += 'index.html';
+    if (publicAssets.has(`${path}/index.html`)) {
+      response.writeHead(308, { Location: `${pathname}/${new URL(request.url, 'http://localhost').search}` }).end();
+      return;
+    }
   } catch {
     response.writeHead(400).end('Requisição inválida');
     return;
@@ -46,5 +53,5 @@ server.on('error', (error) => {
   process.exitCode = 1;
 });
 server.listen(port, '127.0.0.1', () => {
-  console.log(`Portfólio: http://127.0.0.1:${port} (${built ? 'build' : 'desenvolvimento'})`);
+  console.log(`Portfólio: http://127.0.0.1:${server.address().port} (${built ? 'build' : 'desenvolvimento'})`);
 });

@@ -2,11 +2,14 @@ import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { publicAssets } from "./assets.mjs";
+import { generatePages } from "./generate-pages.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const dist = resolve(root, "dist");
 const client = resolve(dist, "client");
 const server = resolve(dist, "server");
+
+await generatePages();
 
 // Limit cleanup to this project's generated output.
 if (dirname(dist) !== resolve(root)) throw new Error("Invalid build directory");
